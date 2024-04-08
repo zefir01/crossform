@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"crossform.io/pkg/logger"
 	"crypto/md5"
 	"encoding/hex"
 	"github.com/pkg/errors"
@@ -11,6 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/client-go/kubernetes"
+	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"time"
 )
@@ -35,6 +37,8 @@ func (c *Config) hash() string {
 }
 
 func (c *Config) GetSecretData() (*AuthData, error) {
+	log := logger.GetLogger("repositoryConfig").With().Str("url", c.Url).Str("revision", c.Revision).Logger()
+
 	clusterClient, _ := kubernetes.NewForConfig(ctrl.GetConfigOrDie())
 	l, _ := labels.NewRequirement("crossform.io/secret-type", selection.Equals, []string{"repository"})
 	selector := labels.NewSelector()
@@ -42,7 +46,12 @@ func (c *Config) GetSecretData() (*AuthData, error) {
 	o := metav1.ListOptions{
 		LabelSelector: selector.String(),
 	}
-	secrets, err := clusterClient.CoreV1().Secrets("default").List(context.TODO(), o)
+	ns, found := os.LookupEnv("WATCH_NAMESPACE")
+	if !found {
+		log.Panic().Msg("environment variable WATCH_NAMESPACE is required")
+		os.Exit(1)
+	}
+	secrets, err := clusterClient.CoreV1().Secrets(ns).List(context.TODO(), o)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get secrets")
 	}

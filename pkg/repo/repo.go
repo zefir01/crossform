@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"crossform.io/pkg/executor"
 	"crossform.io/pkg/logger"
 	"errors"
 	"fmt"
@@ -109,7 +110,7 @@ func (repo *Repo) getAuth() (transport.AuthMethod, error) {
 }
 
 func (repo *Repo) initRepo() (*git.Repository, error) {
-	// Clone the given repository to the given Directory
+	// Clone the given repository to the given Path
 	repo.log.Info().Str("url", repo.config.Url).Msg("git clone")
 	transport.UnsupportedCapabilities = []capability.Capability{
 		capability.ThinPack,
@@ -420,25 +421,25 @@ func (repo *Repo) Destroy() error {
 	return err
 }
 
-//func (repo *Repo) Execute(task *executor.ExecCommand) (*executor.ExecResult, error) {
-//	repo.log.Debug().Msg("execute")
-//	unlock := func() {
-//		repo.Locker.RUnlock()
-//		repo.log.Debug().Msg("read unlocked")
-//	}
-//	repo.Locker.RLock()
-//	repo.log.Debug().Msg("read locked")
-//	defer unlock()
-//	if !repo.GetStatus().IsInitialized {
-//		err := errors.New("repository not initialized")
-//		repo.log.Warn().Err(err).Msg("execution failed")
-//		return nil, err
-//	}
-//
-//	res, err := executor.Execute(repo.config.Path, task)
-//	if err != nil {
-//		repo.log.Error().Err(err).Msg("Execution error")
-//		return nil, err
-//	}
-//	return res, err
-//}
+func (repo *Repo) Execute(task *executor.ExecCommand) (*executor.ExecResult, error) {
+	repo.log.Debug().Msg("execute")
+	unlock := func() {
+		repo.Locker.RUnlock()
+		repo.log.Debug().Msg("read unlocked")
+	}
+	repo.Locker.RLock()
+	repo.log.Debug().Msg("read locked")
+	defer unlock()
+	if !repo.Status.IsInitialized {
+		err := errors.New("repository not initialized")
+		repo.log.Warn().Err(err).Msg("execution failed")
+		return nil, err
+	}
+
+	res, err := executor.Execute(repo.config.Path, task)
+	if err != nil {
+		repo.log.Error().Err(err).Msg("Execution error")
+		return nil, err
+	}
+	return res, err
+}

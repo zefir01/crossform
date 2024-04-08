@@ -1,0 +1,18 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: crossform-default
+spec:
+  compositeTypeRef:
+    apiVersion: crossform.io/v1alpha1
+    kind: xModule
+  mode: Pipeline
+  pipeline:
+    - step: default
+      functionRef:
+        name: crossform
+      input:
+        apiVersion: crossform.io/v1beta1
+        kind: Input
+        name: default
+        repoServer: 192.168.1.173:8083

@@ -2,6 +2,7 @@ package main
 
 import (
 	"crossform.io/pkg/RepoManager"
+	"crossform.io/pkg/crossplane"
 	"crossform.io/pkg/logger"
 	"crossform.io/pkg/repo"
 	"fmt"
@@ -13,6 +14,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/dynamic/dynamicinformer"
 	"k8s.io/client-go/tools/cache"
+	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"time"
 )
@@ -76,6 +78,16 @@ func main() {
 	defer runtime.HandleCrash()
 
 	_, _ = makeModulesInformer(stopper, repoManager, log)
+
+	functionStart := func() {
+		f := crossplane.NewFunction(repoManager)
+		err := f.Run()
+		if err != nil {
+			log.Panic().Err(err).Msg("unable to start crossplane function")
+			os.Exit(1)
+		}
+	}
+	go functionStart()
 
 	<-stopper
 

@@ -1,8 +1,11 @@
 package RepoManager
 
 import (
+	"crossform.io/pkg/executor"
 	"crossform.io/pkg/logger"
 	"crossform.io/pkg/repo"
+	"crypto/md5"
+	"encoding/hex"
 	"errors"
 	"github.com/rs/zerolog"
 	"os"
@@ -50,7 +53,7 @@ func (m *RepoManager) worker() {
 			select {
 			case config := <-m.ConfigUpdates:
 				m.log.Debug().Str("config", config.Url).Msg("config update received")
-				r, err := m.getRepo(config.Hash)
+				r, err := m.getRepoByHash(config.Hash)
 				if err != nil {
 					m.log.Debug().Str("config", config.Url).Msg("repository not found, creating a new one")
 					r = repo.NewRepo(config)
@@ -61,7 +64,7 @@ func (m *RepoManager) worker() {
 				}
 			case config := <-m.ConfigDeletes:
 				m.log.Debug().Str("name", config.Url).Msg("config delete received")
-				r, err := m.getRepo(config.Hash)
+				r, err := m.getRepoByHash(config.Hash)
 				if err != nil {
 					m.log.Warn().Str("name", config.Url).Msg("repository not found")
 					continue
@@ -81,25 +84,38 @@ func (m *RepoManager) worker() {
 	}
 }
 
-func (m *RepoManager) getRepo(name string) (*repo.Repo, error) {
+func (m *RepoManager) getRepoByHash(hash string) (*repo.Repo, error) {
 	m.locker.RLock()
 	defer m.locker.RUnlock()
-	prev := m.repos[name]
+	prev := m.repos[hash]
 	if prev == nil {
-		m.log.Warn().Str("name", name).Msg("repository not found")
-		return nil, errors.New("Repository not found: " + name)
+		m.log.Warn().Str("hash", hash).Msg("repository not found")
+		return nil, errors.New("Repository not found: " + hash)
 	}
 	return prev, nil
 }
 
-//func (m *RepoManager) Execute(execute *executor.ExecCommand) (*executor.ExecResult, error) {
-//	prev, err := m.getRepo(execute.RepositoryName)
-//	if err != nil {
-//		m.log.Error().Str("name", execute.RepositoryName).Msg("repository not found")
-//		return nil, err
-//	}
-//	return prev.Execute(execute)
-//}
+func (m *RepoManager) getRepo(url string, revision string) (*repo.Repo, error) {
+	h := md5.Sum([]byte(url + revision))
+	hash := hex.EncodeToString(h[:])
+	m.locker.RLock()
+	defer m.locker.RUnlock()
+	prev := m.repos[hash]
+	if prev == nil {
+		m.log.Warn().Str("hash", hash).Msg("repository not found")
+		return nil, errors.New("Repository not found: " + hash)
+	}
+	return prev, nil
+}
+
+func (m *RepoManager) Execute(execute *executor.ExecCommand) (*executor.ExecResult, error) {
+	prev, err := m.getRepo(execute.RepositoryUrl, execute.RepositoryRevision)
+	if err != nil {
+		m.log.Error().Str("url", execute.RepositoryUrl).Str("revision", execute.RepositoryRevision).Msg("repository not found")
+		return nil, err
+	}
+	return prev.Execute(execute)
+}
 
 func (m *RepoManager) Destroy() {
 	m.log.Debug().Msg("destroy")
