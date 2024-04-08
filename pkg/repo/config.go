@@ -2,6 +2,8 @@ package repo
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,11 +16,10 @@ import (
 )
 
 type Config struct {
-	Name         string
 	Url          string
 	Revision     string
 	UpdatePeriod time.Duration
-	Uuid         string
+	Hash         string
 	Path         string
 }
 
@@ -26,6 +27,11 @@ type AuthData struct {
 	PrivateKey string
 	Username   string
 	Password   string
+}
+
+func (c *Config) hash() string {
+	hash := md5.Sum([]byte(c.Url + c.Revision))
+	return hex.EncodeToString(hash[:])
 }
 
 func (c *Config) GetSecretData() (*AuthData, error) {
@@ -86,16 +92,14 @@ func (c *Config) GetSecretData() (*AuthData, error) {
 
 func NewConfig(module *unstructured.Unstructured) (*Config, error) {
 	m := module.Object
-	metadata := m["metadata"].(map[string]interface{})
 	spec := m["spec"].(map[string]interface{})
 
 	config := Config{
-		Name:         metadata["name"].(string),
 		Url:          spec["repository"].(string),
 		Revision:     spec["revision"].(string),
 		UpdatePeriod: time.Second * 30,
-		Uuid:         metadata["uid"].(string),
-		Path:         "repos/" + metadata["uid"].(string),
 	}
+	config.Hash = config.hash()
+	config.Path = "repos/" + config.Hash
 	return &config, nil
 }

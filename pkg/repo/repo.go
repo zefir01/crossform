@@ -51,10 +51,10 @@ type Repo struct {
 func NewRepo(config *Config) *Repo {
 	repo := Repo{
 		config: config,
-		Status: NewStatus(config.Name),
+		Status: NewStatus(),
 		Locker: sync.RWMutex{},
 		stop:   make(chan bool),
-		log:    logger.GetLogger("repository").With().Str("name", config.Name).Logger(),
+		log:    logger.GetLogger("repository").With().Str("url", config.Url).Logger(),
 	}
 	go repo.worker()
 	return &repo
@@ -414,33 +414,10 @@ func (repo *Repo) Destroy() error {
 	}
 	defer unlock()
 	repo.stop <- true
-	repo.Status = NewStatus(repo.config.Name)
+	repo.Status = NewStatus()
 	err := os.RemoveAll(repo.config.Path)
 	repo.log.Debug().Msg("destroyed")
 	return err
-}
-
-func (repo *Repo) UpdateConfig(config *Config) {
-	repo.log.Info().Msg("Updating repository config")
-	repo.Locker.Lock()
-	repo.log.Debug().Msg("locked")
-	unlock := func() {
-		repo.Locker.Unlock()
-		repo.log.Debug().Msg("unlocked")
-	}
-	defer unlock()
-	repo.stop <- true
-	repo.log.Debug().Msg("worker stopped")
-	repo.Status = NewStatus(repo.config.Name)
-	err := os.RemoveAll(repo.config.Path)
-	if err != nil {
-		repo.log.Panic().Err(err).Msg("unable to remove repository")
-		os.Exit(1)
-	}
-	repo.config = config
-	go repo.worker()
-	repo.log.Debug().Msg("worker started")
-	repo.log.Info().Msg("config updated")
 }
 
 //func (repo *Repo) Execute(task *executor.ExecCommand) (*executor.ExecResult, error) {

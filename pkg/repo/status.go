@@ -3,7 +3,6 @@ package repo
 import "github.com/rs/zerolog"
 
 type Status struct {
-	Name            string
 	IsInitialized   bool
 	Message         string
 	IsUpdateSuccess bool
@@ -11,9 +10,8 @@ type Status struct {
 	Revision        string
 }
 
-func NewStatus(name string) *Status {
+func NewStatus() *Status {
 	return &Status{
-		Name:            name,
 		IsInitialized:   false,
 		Message:         "UnInitialized",
 		IsUpdateSuccess: false,
@@ -23,7 +21,7 @@ func NewStatus(name string) *Status {
 }
 
 func (s Status) MarshalZerologObject(e *zerolog.Event) {
-	e.Str("name", s.Name).
+	e.
 		Bool("IsInitialized", s.IsInitialized).
 		Str("Message", s.Message).
 		Bool("IsUpdateSuccess", s.IsUpdateSuccess).

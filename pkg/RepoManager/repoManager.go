@@ -16,6 +16,7 @@ type RepoManager struct {
 	ConfigDeletes chan *repo.Config
 	stop          chan bool
 	log           zerolog.Logger
+	uses          map[string]int
 }
 
 func NewRepoManager() *RepoManager {
@@ -33,6 +34,7 @@ func NewRepoManager() *RepoManager {
 		ConfigUpdates: make(chan *repo.Config, 10000),
 		ConfigDeletes: make(chan *repo.Config, 10000),
 		log:           logger.GetLogger("RepoManager").With().Logger(),
+		uses:          make(map[string]int),
 	}
 	go r.worker()
 	return r
@@ -47,29 +49,33 @@ func (m *RepoManager) worker() {
 		default:
 			select {
 			case config := <-m.ConfigUpdates:
-				m.log.Debug().Str("config", config.Name).Msg("config update received")
-				r, err := m.getRepo(config.Uuid)
+				m.log.Debug().Str("config", config.Url).Msg("config update received")
+				r, err := m.getRepo(config.Hash)
 				if err != nil {
-					m.log.Debug().Str("config", config.Name).Msg("repository not found, creating a new one")
+					m.log.Debug().Str("config", config.Url).Msg("repository not found, creating a new one")
 					r = repo.NewRepo(config)
-					m.repos[config.Uuid] = r
+					m.repos[config.Hash] = r
+					m.uses[config.Hash] = 1
 				} else {
-					m.log.Debug().Str("config", config.Name).Msg("repository found, updating config")
-					r.UpdateConfig(config)
+					m.uses[config.Hash] = m.uses[config.Hash] + 1
 				}
 			case config := <-m.ConfigDeletes:
-				m.log.Debug().Str("name", config.Name).Msg("config delete received")
-				r, err := m.getRepo(config.Uuid)
+				m.log.Debug().Str("name", config.Url).Msg("config delete received")
+				r, err := m.getRepo(config.Hash)
 				if err != nil {
-					m.log.Warn().Str("name", config.Name).Msg("repository not found")
+					m.log.Warn().Str("name", config.Url).Msg("repository not found")
 					continue
 				}
-
+				if m.uses[config.Hash] > 1 {
+					m.uses[config.Hash] = m.uses[config.Hash] - 1
+					continue
+				}
 				err = r.Destroy()
 				if err != nil {
-					m.log.Error().Err(err).Str("name", config.Name).Msg("repository destroy failed")
+					m.log.Error().Err(err).Str("name", config.Url).Msg("repository destroy failed")
 				}
-				delete(m.repos, config.Uuid)
+				delete(m.repos, config.Hash)
+				delete(m.uses, config.Hash)
 			}
 		}
 	}
