@@ -22,3 +22,4 @@ go.work
 repos
 .idea
 manifests/secret.yaml
+bin

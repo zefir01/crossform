@@ -3,6 +3,7 @@ module crossform.io
 go 1.21.8
 
 require (
+	github.com/alecthomas/kong v0.9.0
 	github.com/crossplane/crossplane-runtime v1.15.1
 	github.com/crossplane/function-sdk-go v0.2.0
 	github.com/go-git/go-git/v5 v5.12.0
