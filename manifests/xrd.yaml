@@ -24,6 +24,9 @@ spec:
                 inputs:
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
+                repoServer:
+                  type: string
+                  default: 192.168.1.173:8083
                 repository:
                   type: string
                 revision:
@@ -37,6 +40,8 @@ spec:
             status:
               type: object
               properties:
+                hasErrors:
+                  type: boolean
                 repository:
                   type: object
                   properties:

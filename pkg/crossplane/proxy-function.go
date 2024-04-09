@@ -2,7 +2,6 @@ package crossplane
 
 import (
 	"context"
-	"crossform.io/pkg/crossplane/input/v1beta1"
 	"github.com/crossplane/crossplane-runtime/pkg/errors"
 	"github.com/crossplane/crossplane-runtime/pkg/logging"
 	fnv1beta1 "github.com/crossplane/function-sdk-go/proto/v1beta1"
@@ -23,24 +22,24 @@ type ProxyFunction struct {
 // RunFunction runs the ProxyFunction.
 func (f *ProxyFunction) RunFunction(ctx context.Context, req *fnv1beta1.RunFunctionRequest) (*fnv1beta1.RunFunctionResponse, error) {
 	rsp := response.To(req, response.DefaultTTL)
-	var input v1beta1.Input
-	err := request.GetInput(req, &input)
+	xr, err := request.GetObservedCompositeResource(req)
 	if err != nil {
-		response.Fatal(rsp, errors.Wrapf(err, "cannot get input resource in %T", rsp))
+		response.Fatal(rsp, errors.Wrapf(err, "cannot get observed composite resource from %T", req))
 		return rsp, nil
 	}
+	repoServer := xr.Resource.Object["spec"].(map[string]interface{})["repoServer"].(string)
 
 	if f.connections == nil {
 		f.connections = make(map[string]*grpc.ClientConn)
 	}
-	conn, exist := f.connections[input.RepoServer]
+	conn, exist := f.connections[repoServer]
 	if !exist {
-		conn, err = grpc.Dial(input.RepoServer, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		conn, err = grpc.Dial(repoServer, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
-			response.Fatal(rsp, errors.Wrapf(err, "unable to  create connection to %s", input.RepoServer))
+			response.Fatal(rsp, errors.Wrapf(err, "unable to  create connection to %s", repoServer))
 			return rsp, nil
 		}
-		f.connections[input.RepoServer] = conn
+		f.connections[repoServer] = conn
 	}
 	state := conn.GetState()
 	if state != connectivity.Ready {

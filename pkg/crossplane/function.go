@@ -3,7 +3,6 @@ package crossplane
 import (
 	"context"
 	"crossform.io/pkg/RepoManager"
-	"crossform.io/pkg/crossplane/input/v1beta1"
 	"crossform.io/pkg/executor"
 	"crossform.io/pkg/logger"
 	"github.com/crossplane/crossplane-runtime/pkg/errors"
@@ -47,14 +46,6 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 
 	rsp := response.To(req, response.DefaultTTL)
 
-	var input v1beta1.Input
-	err := request.GetInput(req, &input)
-	if err != nil {
-		f.log.Error().Err(err).Msg("cannot get input resource")
-		response.Fatal(rsp, errors.Wrapf(err, "cannot get input resource in %T", rsp))
-		return rsp, nil
-	}
-
 	desired, err := request.GetDesiredComposedResources(req)
 	if err != nil {
 		f.log.Error().Err(err).Msg("cannot get desired resources")
@@ -90,11 +81,12 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		return rsp, nil
 	}
 
+	spec := xr.Resource.Object["spec"].(map[string]interface{})
 	result, err := f.repoManager.Execute(&executor.ExecCommand{
-		RepositoryUrl:      xr.Resource.Object["repository"].(string),
-		RepositoryRevision: xr.Resource.Object["revision"].(string),
-		Path:               xr.Resource.Object["path"].(string),
-		ModuleName:         input.Name,
+		RepositoryUrl:      spec["repository"].(string),
+		RepositoryRevision: spec["revision"].(string),
+		Path:               spec["path"].(string),
+		ModuleName:         xr.Resource.GetName(),
 		Observed:           observed,
 		Requested:          requested,
 		XR:                 xr,
@@ -188,17 +180,35 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		if name != metadataTyped["name"] {
 			continue
 		}
-		delete(v.Resource.Object, "metadata")
-		delete(v.Resource.Object, "spec")
 		delete(result.Desired, k)
 		x := resource.Composite{}
-		x.Resource = xr.Resource
-		err = response.SetDesiredCompositeResource(rsp, &x)
-		if err != nil {
-			f.log.Error().Err(err).Msg("cannot set desired XR")
-			response.Fatal(rsp, errors.Wrapf(err, "cannot set desired XR %T", rsp))
-			return rsp, nil
+		x.Resource.Object = v.Resource.Object
+		xr = &x
+	}
+	delete(xr.Resource.Object, "metadata")
+	delete(xr.Resource.Object, "spec")
+
+	status := xr.Resource.Object["status"].(map[string]interface{})
+	status["hasErrors"] = len(result.Errors) > 0
+
+	repo, err := f.repoManager.GetRepo(spec["repository"].(string), spec["revision"].(string))
+	if err == nil {
+		repository, ok := status["repository"]
+		if !ok {
+			repository = make(map[string]interface{})
+			status["repository"] = repository
 		}
+		rr := repository.(map[string]interface{})
+		rr["message"] = repo.Status.Message
+		rr["commitSha"] = repo.Status.CommitSha
+		rr["ok"] = repo.Status.IsInitialized && repo.Status.IsUpdateSuccess
+	}
+
+	err = response.SetDesiredCompositeResource(rsp, xr)
+	if err != nil {
+		f.log.Error().Err(err).Msg("cannot set desired XR")
+		response.Fatal(rsp, errors.Wrapf(err, "cannot set desired XR %T", rsp))
+		return rsp, nil
 	}
 
 	if len(result.Request) > 0 {

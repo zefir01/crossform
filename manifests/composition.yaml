@@ -11,8 +11,3 @@ spec:
     - step: default
       functionRef:
         name: crossform
-      input:
-        apiVersion: crossform.io/v1beta1
-        kind: Input
-        name: default
-        repoServer: 192.168.1.173:8083

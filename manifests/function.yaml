@@ -3,4 +3,4 @@ kind: Function
 metadata:
   name: crossform
 spec:
-  package: index.docker.io/zefir01/proxy-function:latest
+  package: index.docker.io/zefir01/proxy-function:0.0.1

@@ -53,7 +53,7 @@ OPERATOR_SDK_VERSION ?= v1.34.1
 # Image URL to use all building/pushing image targets
 #IMG ?= zefir01/operator:latest
 IMG ?= 192.168.100.61:5000/operator:latest
-IMG_FUNCTION ?= zefir01/proxy-function:latest
+IMG_FUNCTION ?= zefir01/proxy-function:0.0.1
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.26.0
 
@@ -92,7 +92,7 @@ help: ## Display this help.
 ##@ Development
 
 .PHONY: package-function
-package-function: docker-build-function
+package-function: package-function
 	crossplane xpkg build \
         --package-root=pkg/crossplane/package \
         --embed-runtime-image=${IMG_FUNCTION} \

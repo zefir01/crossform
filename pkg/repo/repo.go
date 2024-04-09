@@ -398,7 +398,7 @@ func (repo *Repo) work() {
 				Msg("update success")
 		}
 	} else {
-		repo.Status.IsUpdateSuccess = false
+		repo.Status.IsUpdateSuccess = true
 		repo.Status.Message = "No updates"
 		repo.Status.CommitSha = repo.getCommitSha()
 		log.Debug().Err(err).Msg("no updates")

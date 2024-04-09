@@ -41,12 +41,22 @@ func makeModulesInformer(stopper chan struct{}, repoManager *RepoManager.RepoMan
 		},
 		UpdateFunc: func(oldObj, newObj interface{}) {
 			u := newObj.(*unstructured.Unstructured)
-			config, err := repo.NewConfig(u)
+			configNew, err := repo.NewConfig(u)
 			if err != nil {
 				log.Error().Err(err).Msg("Unable to unmarshal module")
 				return
 			}
-			repoManager.ConfigUpdates <- config
+			u = oldObj.(*unstructured.Unstructured)
+			configOld, err := repo.NewConfig(u)
+			if err != nil {
+				log.Error().Err(err).Msg("Unable to unmarshal module")
+				return
+			}
+			if configOld.Hash == configNew.Hash {
+				return
+			}
+			repoManager.ConfigDeletes <- configOld
+			repoManager.ConfigUpdates <- configNew
 		},
 		DeleteFunc: func(obj interface{}) {
 			u := obj.(*unstructured.Unstructured)

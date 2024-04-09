@@ -35,7 +35,7 @@ func NewJsonnetExecutor(cmd *ExecCommand, path string) *JsonnetExecutor {
 func (e *JsonnetExecutor) marshal() (string, string, string, string, error) {
 	temp := make(map[string]interface{})
 	for k, v := range e.cmd.Observed {
-		temp[strings.TrimPrefix(string(k), e.cmd.ModuleName+".")] = v.Resource.Object
+		temp[string(k)] = v.Resource.Object
 	}
 	j, err := json.Marshal(temp)
 	if err != nil {
@@ -46,7 +46,7 @@ func (e *JsonnetExecutor) marshal() (string, string, string, string, error) {
 	temp = make(map[string]interface{})
 	for k, v := range e.cmd.Requested {
 		for _, vv := range v {
-			temp[strings.TrimPrefix(k, e.cmd.ModuleName+".")] = vv.Resource.Object
+			temp[k] = vv.Resource.Object
 		}
 	}
 	j, err = json.Marshal(temp)
@@ -134,7 +134,7 @@ func (e *JsonnetExecutor) Exec() (*ExecResult, error) {
 			return nil, errors.Wrap(err, "Jsonnet execution fatal error")
 		}
 		insufficientRequestedResources := false
-		for k, _ := range request {
+		for k := range request {
 			_, ok := e.cmd.Requested[k]
 			if !ok {
 				insufficientRequestedResources = true
@@ -346,7 +346,6 @@ func (e *JsonnetExecutor) execFile(
 					result[crossform.Metadata.Id] = res
 				} else {
 					errs[crossform.Metadata.Id] = err
-					log.Error().Str("id", crossform.Metadata.Id).Msg("unable to unmarshal resource")
 					continue
 				}
 				log.Debug().Str("id", crossform.Metadata.Id).Msg("resource unmarshal success")
