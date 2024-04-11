@@ -12,6 +12,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/rs/zerolog"
+	"github.com/whilp/git-urls"
 	ssh2 "golang.org/x/crypto/ssh"
 	"os"
 	"sync"
@@ -82,27 +83,53 @@ func (repo *Repo) init() error {
 }
 
 func (repo *Repo) getAuth() (transport.AuthMethod, error) {
+	parsed, err := giturls.Parse(repo.config.Url)
+	if err != nil {
+		return nil, err
+	}
+
 	data, err := repo.config.GetSecretData()
 	if err != nil {
 		return nil, err
 	}
 	var auth transport.AuthMethod
-	if data.PrivateKey != "" {
-		a, err := ssh.NewPublicKeys("git", []byte(data.PrivateKey), "")
-		if err != nil {
-			repo.log.Error().Err(err).Msg("Generate public keys failed")
-			return nil, err
+	switch parsed.Scheme {
+	case "ssh":
+		if data == nil {
+			return nil, errors.New(fmt.Sprintf("unable to find secret for repository %s", repo.config.Url))
 		}
-		a.HostKeyCallback = ssh2.InsecureIgnoreHostKey()
-		if err != nil {
-			repo.log.Error().Err(err).Msg("Generate public keys failed:")
-			return nil, err
+		if data.PrivateKey != "" {
+			a, err := ssh.NewPublicKeys("git", []byte(data.PrivateKey), "")
+			if err != nil {
+				repo.log.Error().Err(err).Msg("Generate public keys failed")
+				return nil, err
+			}
+			a.HostKeyCallback = ssh2.InsecureIgnoreHostKey()
+			if err != nil {
+				repo.log.Error().Err(err).Msg("Generate public keys failed:")
+				return nil, err
+			}
+			auth = a
 		}
-		auth = a
-	} else if data.Username != "" {
-		auth = &http.BasicAuth{
-			Username: data.Username,
-			Password: data.Password,
+	case "https":
+		if data == nil {
+			return nil, nil
+		}
+		if data.Username != "" {
+			auth = &http.BasicAuth{
+				Username: data.Username,
+				Password: data.Password,
+			}
+		}
+	case "http":
+		if data == nil {
+			return nil, nil
+		}
+		if data.Username != "" {
+			auth = &http.BasicAuth{
+				Username: data.Username,
+				Password: data.Password,
+			}
 		}
 	}
 	repo.log.Debug().Str("auth", auth.Name()).Msg("auth detected")
@@ -361,10 +388,6 @@ func (repo *Repo) work() {
 		if err != nil {
 			log.Error().Err(err).Msg("Initialization failed")
 			repo.Status.Message = err.Error()
-			err := repo.Destroy()
-			if err != nil {
-				repo.log.Error().Err(err).Msg("Destroy failed")
-			}
 			return
 		}
 		repo.Status.IsInitialized = true

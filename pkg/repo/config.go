@@ -63,7 +63,8 @@ func (c *Config) GetSecretData() (*AuthData, error) {
 		}
 	}
 	if s == nil {
-		return nil, errors.Errorf("unable to find secret for repository %s", c.Url)
+		log.Debug().Msg("unable to find secret for repository")
+		return nil, nil
 	}
 
 	tmp, _ := s.Data["sshPrivateKey"]
