@@ -15,7 +15,8 @@ type request struct {
 }
 
 type crossform struct {
-	Metadata metadata  `json:"metadata"`
-	Ready    null.Bool `json:"ready,omitempty"`
-	Request  *request  `json:"request,omitempty"`
+	Metadata metadata    `json:"metadata"`
+	Ready    null.Bool   `json:"ready,omitempty"`
+	Request  *request    `json:"request,omitempty"`
+	Output   interface{} `json:"output,omitempty"`
 }

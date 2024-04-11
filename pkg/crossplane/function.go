@@ -11,6 +11,7 @@ import (
 	"github.com/crossplane/function-sdk-go/request"
 	"github.com/crossplane/function-sdk-go/resource"
 	"github.com/crossplane/function-sdk-go/response"
+	"github.com/fatih/structs"
 	"github.com/rs/zerolog"
 	"google.golang.org/protobuf/encoding/protojson"
 	"sigs.k8s.io/yaml"
@@ -188,8 +189,15 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 	delete(xr.Resource.Object, "metadata")
 	delete(xr.Resource.Object, "spec")
 
-	status := xr.Resource.Object["status"].(map[string]interface{})
-	status["hasErrors"] = len(result.Errors) > 0
+	status, ok := xr.Resource.Object["status"].(map[string]interface{})
+	if !ok {
+		status = make(map[string]interface{})
+		xr.Resource.Object["status"] = status
+	}
+	status["hasErrors"] = len(result.DesiredErrors) > 0 || len(result.OutputsErrors) > 0
+	//status["report"] = "\n  " + strings.Replace(result.Report, "\n", "  \n", -1)
+	report := newReport(result)
+	status["report"] = structs.Map(report)
 
 	repo, err := f.repoManager.GetRepo(spec["repository"].(string), spec["revision"].(string))
 	if err == nil {
@@ -203,6 +211,7 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		rr["commitSha"] = repo.Status.CommitSha
 		rr["ok"] = repo.Status.IsInitialized && repo.Status.IsUpdateSuccess
 	}
+	status["outputs"] = result.Outputs
 
 	err = response.SetDesiredCompositeResource(rsp, xr)
 	if err != nil {
@@ -223,12 +232,7 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		return rsp, nil
 	}
 
-	for k, v := range result.Errors {
-		f.log.Debug().Err(err).Str("id", k).Msg("error in resource")
-		response.Warning(rsp, errors.Wrapf(v, "error in resource id=%s", k))
-	}
-
-	response.Normalf(rsp, result.Report)
+	response.Normalf(rsp, report.String())
 
 	return rsp, nil
 }

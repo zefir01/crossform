@@ -17,8 +17,21 @@ type ExecCommand struct {
 }
 
 type ExecResult struct {
-	Desired map[resource.Name]*resource.DesiredComposed
-	Request map[string]*fnv1beta1.ResourceSelector
-	Errors  map[string]error
-	Report  string
+	Desired       map[resource.Name]*resource.DesiredComposed
+	DesiredErrors map[string]error
+	Request       map[string]*fnv1beta1.ResourceSelector
+	RequestErrors map[string]error
+	Outputs       map[string]interface{}
+	OutputsErrors map[string]error
+}
+
+func NewExecResult() *ExecResult {
+	return &ExecResult{
+		Desired:       make(map[resource.Name]*resource.DesiredComposed),
+		DesiredErrors: make(map[string]error),
+		Request:       make(map[string]*fnv1beta1.ResourceSelector),
+		RequestErrors: make(map[string]error),
+		Outputs:       make(map[string]interface{}),
+		OutputsErrors: make(map[string]error),
+	}
 }

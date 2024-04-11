@@ -42,6 +42,42 @@ spec:
               properties:
                 hasErrors:
                   type: boolean
+                report:
+                  type: object
+                  properties:
+                    resources:
+                      type: object
+                      additionalProperties:
+                        type: object
+                        properties:
+                          ok:
+                            type: boolean
+                          error:
+                            type: string
+                        required:
+                          - ok
+                    requests:
+                      type: object
+                      additionalProperties:
+                        type: object
+                        properties:
+                          ok:
+                            type: boolean
+                          error:
+                            type: string
+                        required:
+                          - ok
+                    outputs:
+                      type: object
+                      additionalProperties:
+                        type: object
+                        properties:
+                          ok:
+                            type: boolean
+                          error:
+                            type: string
+                        required:
+                          - ok
                 repository:
                   type: object
                   properties:

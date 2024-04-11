@@ -1,6 +1,7 @@
 local observed = std.extVar('observed');
 local requested = std.extVar('requested');
 local input = std.extVar('input');
+local xr = std.extVar('xr');
 
 local getCondition(obj, type) =
   local arr = [
@@ -46,5 +47,16 @@ local getCondition(obj, type) =
         && getCondition(o.status.conditions, 'Synced')=='True',
       },
     },
+
+  input(name):: xr.spec.inputs[name],
+  output(id, value):: {
+    crossform:: {
+      metadata: {
+        id: id,
+        type: 'output',
+      },
+      output: value,
+    },
+  },
 }
 
