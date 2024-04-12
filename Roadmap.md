@@ -4,8 +4,7 @@
   https://github.com/crossplane-contrib/provider-kubernetes
 
 - create function pod restart issue
-- dependOn
-- implement jsonnet bandler
+- helm
 - cue support
 - local debug runner?
 - diff operator

@@ -20,4 +20,5 @@ type crossform struct {
 	Request  *request               `json:"request,omitempty"`
 	Output   interface{}            `json:"output,omitempty"`
 	Schema   map[string]interface{} `json:"schema,omitempty"`
+	Deferred bool                   `json:"deferred,omitempty"`
 }

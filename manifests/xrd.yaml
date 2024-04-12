@@ -50,47 +50,19 @@ spec:
                     inputs:
                       type: object
                       additionalProperties:
-                        type: object
-                        properties:
-                          ok:
-                            type: boolean
-                          error:
-                            type: string
-                        required:
-                          - ok
+                        type: string
                     resources:
                       type: object
                       additionalProperties:
-                        type: object
-                        properties:
-                          ok:
-                            type: boolean
-                          error:
-                            type: string
-                        required:
-                          - ok
+                        type: string
                     requests:
                       type: object
                       additionalProperties:
-                        type: object
-                        properties:
-                          ok:
-                            type: boolean
-                          error:
-                            type: string
-                        required:
-                          - ok
+                        type: string
                     outputs:
                       type: object
                       additionalProperties:
-                        type: object
-                        properties:
-                          ok:
-                            type: boolean
-                          error:
-                            type: string
-                        required:
-                          - ok
+                        type: string
                 repository:
                   type: object
                   properties:

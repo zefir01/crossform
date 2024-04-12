@@ -11,6 +11,24 @@ local getCondition(obj, type) =
   ];
   if std.length(arr)==0 then "" else arr[0];
 
+local conditionsTrue(id) =
+  local o = std.get(observed, id, {});
+    std.objectHas(o, 'status')
+    && std.objectHas(o.status, 'conditions')
+    && getCondition(o.status.conditions, 'Ready')=='True'
+    && getCondition(o.status.conditions, 'Synced')=='True';
+
+local isReady(res) =
+  assert std.isObject(res) || std.isArray(res): 'parameter should be one resource or array of resources';
+  if std.isArray(res) then
+    local m = [
+      conditionsTrue(r)
+      for r in res
+    ];
+      std.length(m)==0 || std.all(m)
+  else conditionsTrue(res);
+
+
 {
   request(id, apiVersion, kind, selector):: {
     assert std.type(selector)=='string' || std.type(selector)=='object' : 'request selector should be labels object or string name',
@@ -30,7 +48,7 @@ local getCondition(obj, type) =
     result: std.get(requested, id, if std.type(selector)=='string' then {} else []),
   },
 
-  resource(id, obj={})::
+  resource(id, obj, dependOn=null)::
     std.mergePatch(std.get(observed, id, {}), obj)
     +
     {
@@ -40,11 +58,8 @@ local getCondition(obj, type) =
           id: id,
           type: 'resource',
         },
-        local o = std.get(observed, id, {}),
-        ready: std.objectHas(o, 'status')
-        && std.objectHas(o.status, 'conditions')
-        && getCondition(o.status.conditions, 'Ready')=='True'
-        && getCondition(o.status.conditions, 'Synced')=='True',
+        ready: conditionsTrue(id),
+        deferred: if dependOn==null then false else isReady(dependOn),
       },
     },
 

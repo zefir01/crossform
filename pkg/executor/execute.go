@@ -19,6 +19,7 @@ type ExecCommand struct {
 type ExecResult struct {
 	Desired               map[resource.Name]*resource.DesiredComposed
 	DesiredErrors         map[string]error
+	Deferred              []string
 	Request               map[string]*fnv1beta1.ResourceSelector
 	RequestErrors         map[string]error
 	Outputs               map[string]interface{}
@@ -32,6 +33,7 @@ func NewExecResult() *ExecResult {
 	return &ExecResult{
 		Desired:       make(map[resource.Name]*resource.DesiredComposed),
 		DesiredErrors: make(map[string]error),
+		Deferred:      make([]string, 0),
 		Request:       make(map[string]*fnv1beta1.ResourceSelector),
 		RequestErrors: make(map[string]error),
 		Outputs:       make(map[string]interface{}),

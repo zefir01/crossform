@@ -2,110 +2,122 @@ package crossplane
 
 import (
 	"crossform.io/pkg/executor"
+	"encoding/json"
 	"fmt"
 	"strings"
 )
 
 type reportItem struct {
-	Ok    bool   `json:"ok" structs:"ok"`
-	Error string `json:"error,omitempty"  structs:"error,omitempty"`
+	typ      string
+	id       string
+	deferred bool
+	Error    error
 }
 
-func (i *reportItem) String(typ string, id string) string {
-	if i.Ok {
-		return fmt.Sprintf("%s %s OK", typ, id)
+func newReportItem(typ, id string, err error, deferred bool) *reportItem {
+	item := &reportItem{
+		typ:      typ,
+		id:       id,
+		Error:    err,
+		deferred: deferred,
 	}
-	return fmt.Sprintf("%s %s ERROR:\n%s", typ, id, i.Error)
+	return item
+}
+
+func (i *reportItem) String() string {
+	return fmt.Sprintf("%s %s %s", i.typ, i.id, i.Status())
+}
+func (i *reportItem) Status() string {
+	if i.Error != nil {
+		return fmt.Sprintf("ERROR:\n%s", i.Error)
+	}
+	if i.deferred {
+		return "DEFERRED"
+	}
+	return "OK"
 }
 
 type report struct {
-	Resources        map[string]reportItem `json:"resources,omitempty" structs:"resources,omitempty"`
-	Requests         map[string]reportItem `json:"requests,omitempty" structs:"requests,omitempty"`
-	Outputs          map[string]reportItem `json:"outputs,omitempty" structs:"outputs,omitempty"`
-	Inputs           map[string]reportItem `json:"inputs,omitempty" structs:"inputs,omitempty"`
-	InputsValidation string                `json:"inputsValidation,omitempty" structs:"inputsValidation,omitempty"`
+	Resources        map[string]string `json:"resources,omitempty" structs:"resources,omitempty"`
+	Requests         map[string]string `json:"requests,omitempty" structs:"requests,omitempty"`
+	Outputs          map[string]string `json:"outputs,omitempty" structs:"outputs,omitempty"`
+	Inputs           map[string]string `json:"inputs,omitempty" structs:"inputs,omitempty"`
+	InputsValidation string            `json:"inputsValidation,omitempty" structs:"inputsValidation,omitempty"`
+	items            []*reportItem
 }
 
 func (r *report) String() string {
 	items := make([]string, 0)
-	for k, v := range r.Requests {
-		items = append(items, v.String("Request", k))
-	}
-	for k, v := range r.Resources {
-		items = append(items, v.String("Resource", k))
-	}
-	for k, v := range r.Outputs {
-		items = append(items, v.String("Output", k))
-	}
-	for k, v := range r.Inputs {
-		items = append(items, v.String("Input", k))
+	for _, v := range r.items {
+		items = append(items, v.String())
 	}
 	inputsValidation := fmt.Sprintf("Inputs validation: %s\n", r.InputsValidation)
 	return inputsValidation + strings.Join(items, "\n")
 }
 
+func (r *report) Map() (map[string]interface{}, error) {
+	jsonData, _ := json.Marshal(r)
+	v := map[string]interface{}{}
+	err := json.Unmarshal(jsonData, &v)
+	return v, err
+}
+
 func newReport(result *executor.ExecResult) *report {
 	r := &report{
-		Requests:         make(map[string]reportItem),
-		Resources:        make(map[string]reportItem),
-		Outputs:          make(map[string]reportItem),
-		Inputs:           make(map[string]reportItem),
+		Requests:         make(map[string]string),
+		Resources:        make(map[string]string),
+		Outputs:          make(map[string]string),
+		Inputs:           make(map[string]string),
 		InputsValidation: "OK",
+		items:            make([]*reportItem, 0),
 	}
 	if result.InputsValidationError != nil {
 		r.InputsValidation = result.InputsValidationError.Error()
 	}
 	for k := range result.Request {
-		item := reportItem{
-			Ok: true,
-		}
-		r.Requests[k] = item
+		i := newReportItem("Request", k, nil, false)
+		r.items = append(r.items, i)
+		r.Requests[k] = i.Status()
 	}
 	for k, v := range result.RequestErrors {
-		item := reportItem{
-			Ok:    false,
-			Error: v.Error(),
-		}
-		r.Requests[k] = item
+		i := newReportItem("Request", k, v, false)
+		r.items = append(r.items, i)
+		r.Requests[k] = i.Status()
+	}
+	for _, k := range result.Deferred {
+		i := newReportItem("Resource", k, nil, true)
+		r.items = append(r.items, i)
+		r.Resources[k] = i.Status()
 	}
 	for k := range result.Desired {
-		item := reportItem{
-			Ok: true,
-		}
-		r.Resources[string(k)] = item
+		i := newReportItem("Resource", string(k), nil, false)
+		r.items = append(r.items, i)
+		r.Resources[string(k)] = i.Status()
 	}
 	for k, v := range result.DesiredErrors {
-		item := reportItem{
-			Ok:    false,
-			Error: v.Error(),
-		}
-		r.Resources[k] = item
+		i := newReportItem("Resource", k, v, false)
+		r.items = append(r.items, i)
+		r.Resources[k] = i.Status()
 	}
 	for k := range result.Outputs {
-		item := reportItem{
-			Ok: true,
-		}
-		r.Outputs[k] = item
+		i := newReportItem("Output", k, nil, false)
+		r.items = append(r.items, i)
+		r.Outputs[k] = i.Status()
 	}
 	for k, v := range result.OutputsErrors {
-		item := reportItem{
-			Ok:    false,
-			Error: v.Error(),
-		}
-		r.Outputs[k] = item
+		i := newReportItem("Output", k, v, false)
+		r.items = append(r.items, i)
+		r.Outputs[k] = i.Status()
 	}
 	for k := range result.Inputs {
-		item := reportItem{
-			Ok: true,
-		}
-		r.Inputs[k] = item
+		i := newReportItem("Input", k, nil, false)
+		r.items = append(r.items, i)
+		r.Inputs[k] = i.Status()
 	}
 	for k, v := range result.InputsErrors {
-		item := reportItem{
-			Ok:    false,
-			Error: v.Error(),
-		}
-		r.Inputs[k] = item
+		i := newReportItem("Input", k, v, false)
+		r.items = append(r.items, i)
+		r.Inputs[k] = i.Status()
 	}
 	return r
 }

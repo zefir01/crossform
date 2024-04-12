@@ -161,7 +161,7 @@ func (e *JsonnetExecutor) Exec() (*ExecResult, error) {
 		}
 		filename := e.path + "/" + e.cmd.Path + "/" + v.Name()
 
-		desired, desiredErrors, request, requestsErrs, outputs, outputsErrs, inputs, inputsErrs, err :=
+		desired, desiredErrors, resourcesDeferred, request, requestsErrs, outputs, outputsErrs, inputs, inputsErrs, err :=
 			e.execFile(observed, requested, xr, context, vm, filename, false)
 		if err != nil {
 			return nil, errors.Wrap(err, "Jsonnet execution fatal error")
@@ -199,11 +199,12 @@ func (e *JsonnetExecutor) Exec() (*ExecResult, error) {
 			return result, nil
 		}
 
-		desired, desiredErrors, request, requestsErrs, outputs, outputsErrs, inputs, inputsErrs, err =
+		desired, desiredErrors, resourcesDeferred, request, requestsErrs, outputs, outputsErrs, inputs, inputsErrs, err =
 			e.execFile(observed, requested, xr, context, vm, filename, true)
 		if err != nil {
 			return nil, errors.Wrap(err, "Jsonnet execution fatal error")
 		}
+		result.Deferred = resourcesDeferred
 
 		err = e.makeRequestResult(result.Request, request)
 		if err != nil {
@@ -315,10 +316,13 @@ func (e *JsonnetExecutor) getResource(
 	metadata *metadata,
 	vm *jsonnet.VM,
 	log zerolog.Logger,
-) (*resource.DesiredComposed, error) {
+) (*resource.DesiredComposed, bool, error) {
 	crossform, err := e.getCrossformObject(fileImport, name, vm, log)
 	if err != nil {
-		return nil, err
+		return nil, false, err
+	}
+	if crossform.Deferred {
+		return nil, crossform.Deferred, nil
 	}
 
 	exec := fmt.Sprintf("%s m['%s']", fileImport, name)
@@ -326,14 +330,14 @@ func (e *JsonnetExecutor) getResource(
 	jsonStr, err := vm.EvaluateAnonymousSnippet("example1.jsonnet", exec)
 	if err != nil {
 		e.log.Warn().Err(err).Str("field", name).Str("id", metadata.Id).Str("jsonnetCode", exec).Msg("error evaluating resource")
-		return nil, err
+		return nil, false, err
 	}
 
 	var obj map[string]interface{}
 	err = json.Unmarshal([]byte(jsonStr), &obj)
 	if err != nil {
 		log.Error().Err(err).Str("id", metadata.Id).Str("json", jsonStr).Msg("unable to unmarshal resource")
-		return nil, err
+		return nil, false, err
 	}
 
 	ready := resource.ReadyUnspecified
@@ -349,7 +353,7 @@ func (e *JsonnetExecutor) getResource(
 
 	var t composed.Unstructured
 	t.Unstructured.Object = obj
-	return &resource.DesiredComposed{Resource: &t, Ready: ready}, nil
+	return &resource.DesiredComposed{Resource: &t, Ready: ready}, crossform.Deferred, nil
 }
 
 func (e *JsonnetExecutor) getMetadata(
@@ -385,6 +389,7 @@ func (e *JsonnetExecutor) execFile(
 ) (
 	map[string]*resource.DesiredComposed,
 	map[string]error,
+	[]string,
 	map[string]*crossform,
 	map[string]error,
 	map[string]interface{},
@@ -407,19 +412,20 @@ func (e *JsonnetExecutor) execFile(
 	jsonStr, err := vm.EvaluateAnonymousSnippet("example1.jsonnet", fmt.Sprintf("%s std.objectFields(m)", fileImport))
 	if err != nil {
 		log.Error().Err(err).Msg("unable to get main object fields")
-		return nil, nil, nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, nil, nil, nil, err
 	}
 	names := make([]string, 0)
 	err = json.Unmarshal([]byte(jsonStr), &names)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to unmarshal main object fields")
-		return nil, nil, nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, nil, nil, nil, err
 	}
 
-	results := make(map[string]*resource.DesiredComposed)
-	errs := make(map[string]error)
+	resources := make(map[string]*resource.DesiredComposed)
+	resourcesErrs := make(map[string]error)
+	resourcesDeferred := make([]string, 0)
 	requests := make(map[string]*crossform)
-	requestsErrors := make(map[string]error)
+	requestsErrs := make(map[string]error)
 	outputs := make(map[string]interface{})
 	outputsErrs := make(map[string]error)
 	inputs := make(map[string]*crossform)
@@ -431,25 +437,29 @@ func (e *JsonnetExecutor) execFile(
 		metadata, err := e.getMetadata(fileImport, name, filename, vm, log)
 		if err != nil {
 			log.Error().Err(err).Str("field", name).Str("json", jsonStr).Msg("unable to get crossform metadata")
-			return nil, nil, nil, nil, nil, nil, nil, nil, err
+			return nil, nil, nil, nil, nil, nil, nil, nil, nil, err
 		}
 
 		switch metadata.Type {
 		case "resource":
 			if evaluate {
-				res, err := e.getResource(fileImport, name, metadata, vm, log)
+				res, isDeferred, err := e.getResource(fileImport, name, metadata, vm, log)
 				if err != nil {
-					errs[metadata.Id] = err
+					resourcesErrs[metadata.Id] = err
 					continue
 				}
-				results[metadata.Id] = res
+				if isDeferred {
+					resourcesDeferred = append(resourcesDeferred, metadata.Id)
+				} else {
+					resources[metadata.Id] = res
+				}
 				log.Debug().Str("id", metadata.Id).Msg("resource unmarshal success")
 			}
 		case "request":
 			crossform, err := e.getCrossformObject(fileImport, name, vm, log)
 			if err != nil {
 				log.Warn().Err(err).Str("field", name).Str("json", jsonStr).Msg("unable to unmarshal crossform object")
-				requestsErrors[metadata.Id] = err
+				requestsErrs[metadata.Id] = err
 				continue
 			}
 			requests[metadata.Id] = crossform
@@ -475,5 +485,5 @@ func (e *JsonnetExecutor) execFile(
 			log.Debug().Str("id", metadata.Id).Msg("input unmarshal success")
 		}
 	}
-	return results, errs, requests, requestsErrors, outputs, outputsErrs, inputs, inputsErrs, nil
+	return resources, resourcesErrs, resourcesDeferred, requests, requestsErrs, outputs, outputsErrs, inputs, inputsErrs, nil
 }

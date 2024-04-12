@@ -11,7 +11,6 @@ import (
 	"github.com/crossplane/function-sdk-go/request"
 	"github.com/crossplane/function-sdk-go/resource"
 	"github.com/crossplane/function-sdk-go/response"
-	"github.com/fatih/structs"
 	"github.com/rs/zerolog"
 	"google.golang.org/protobuf/encoding/protojson"
 	"sigs.k8s.io/yaml"
@@ -105,6 +104,13 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		}
 	}
 
+	for _, k := range result.Deferred {
+		o, exist := observed[resource.Name(k)]
+		if exist {
+			result.Desired[resource.Name(k)] = &resource.DesiredComposed{Resource: o.Resource}
+		}
+	}
+
 	for _, v := range result.Desired {
 		metadata, ok := v.Resource.Object["metadata"]
 		if !ok {
@@ -194,9 +200,14 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		status = make(map[string]interface{})
 		xr.Resource.Object["status"] = status
 	}
-	status["hasErrors"] = len(result.DesiredErrors) > 0 || len(result.OutputsErrors) > 0
+	status["hasErrors"] = len(result.DesiredErrors) > 0 || len(result.OutputsErrors) > 0 || fatal || len(result.Deferred) > 0
 	report := newReport(result)
-	status["report"] = structs.Map(report)
+	status["report"], err = report.Map()
+	if err != nil {
+		f.log.Error().Err(err).Msg("cannot convert report")
+		response.Fatal(rsp, errors.Wrap(err, "cannot convert report"))
+		return rsp, nil
+	}
 
 	repo, err := f.repoManager.GetRepo(spec["repository"].(string), spec["revision"].(string))
 	if err == nil {
