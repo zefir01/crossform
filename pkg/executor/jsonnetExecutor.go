@@ -10,6 +10,7 @@ import (
 	"github.com/crossplane/function-sdk-go/resource/composed"
 	"github.com/google/go-jsonnet"
 	"github.com/rs/zerolog"
+	"github.com/santhosh-tekuri/jsonschema/v5"
 	"os"
 	"strings"
 )
@@ -95,6 +96,40 @@ func (e *JsonnetExecutor) makeRequestResult(
 	return nil
 }
 
+func (e *JsonnetExecutor) validate(inputs map[string]*crossform, input map[string]interface{}) error {
+	schema := make(map[string]interface{})
+	schema["type"] = "object"
+	schema["required"] = make([]string, 0)
+	schema["properties"] = make(map[string]interface{})
+	properties := schema["properties"].(map[string]interface{})
+
+	for k, v := range inputs {
+		if v.Schema == nil {
+			continue
+		}
+		properties[k] = v.Schema
+		if _, exist := v.Schema["default"]; !exist {
+			schema["required"] = append(schema["required"].([]string), k)
+		}
+	}
+	compiler := jsonschema.NewCompiler()
+	j, err := json.Marshal(schema)
+	if err != nil {
+		return err
+	}
+	if err := compiler.AddResource("https://crossform.io/inputs", strings.NewReader(string(j))); err != nil {
+		return err
+	}
+	sch, err := compiler.Compile("https://crossform.io/inputs")
+	if err != nil {
+		return err
+	}
+	if err = sch.Validate(input); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (e *JsonnetExecutor) Exec() (*ExecResult, error) {
 	e.log.Debug().Msg("start jsonnet execution")
 
@@ -126,10 +161,26 @@ func (e *JsonnetExecutor) Exec() (*ExecResult, error) {
 		}
 		filename := e.path + "/" + e.cmd.Path + "/" + v.Name()
 
-		desired, desiredErrors, request, requestsErrs, outputs, outputsErrs, err := e.execFile(observed, requested, xr, context, vm, filename, false)
+		desired, desiredErrors, request, requestsErrs, outputs, outputsErrs, inputs, inputsErrs, err :=
+			e.execFile(observed, requested, xr, context, vm, filename, false)
 		if err != nil {
 			return nil, errors.Wrap(err, "Jsonnet execution fatal error")
 		}
+
+		xrSpec := e.cmd.XR.Resource.Object["spec"]
+		xrInputs := xrSpec.(map[string]interface{})["inputs"]
+		if err := e.validate(inputs, xrInputs.(map[string]interface{})); err != nil {
+			e.log.Error().Err(err).Msg("Inputs schema validation error")
+			result.InputsValidationError = err
+		}
+
+		for k, v := range inputsErrs {
+			result.InputsErrors[k] = v
+		}
+		for k := range inputs {
+			result.Inputs[k] = k
+		}
+
 		insufficientRequestedResources := false
 		for k := range request {
 			_, ok := e.cmd.Requested[k]
@@ -138,9 +189,9 @@ func (e *JsonnetExecutor) Exec() (*ExecResult, error) {
 			}
 		}
 		if insufficientRequestedResources {
-			for k, v := range e.cmd.Observed {
-				result.Desired[k] = &resource.DesiredComposed{Resource: v.Resource}
-			}
+			//for k, v := range e.cmd.Observed {
+			//	result.Desired[k] = &resource.DesiredComposed{Resource: v.Resource}
+			//}
 			err := e.makeRequestResult(result.Request, request)
 			if err != nil {
 				return nil, err
@@ -148,7 +199,8 @@ func (e *JsonnetExecutor) Exec() (*ExecResult, error) {
 			return result, nil
 		}
 
-		desired, desiredErrors, request, requestsErrs, outputs, outputsErrs, err = e.execFile(observed, requested, xr, context, vm, filename, true)
+		desired, desiredErrors, request, requestsErrs, outputs, outputsErrs, inputs, inputsErrs, err =
+			e.execFile(observed, requested, xr, context, vm, filename, true)
 		if err != nil {
 			return nil, errors.Wrap(err, "Jsonnet execution fatal error")
 		}
@@ -233,7 +285,6 @@ func (e *JsonnetExecutor) Exec() (*ExecResult, error) {
 				}
 			}
 		}
-
 	}
 	return result, nil
 }
@@ -338,6 +389,8 @@ func (e *JsonnetExecutor) execFile(
 	map[string]error,
 	map[string]interface{},
 	map[string]error,
+	map[string]*crossform,
+	map[string]error,
 	error,
 ) {
 	e.log.Debug().Str("observed", observed).
@@ -354,13 +407,13 @@ func (e *JsonnetExecutor) execFile(
 	jsonStr, err := vm.EvaluateAnonymousSnippet("example1.jsonnet", fmt.Sprintf("%s std.objectFields(m)", fileImport))
 	if err != nil {
 		log.Error().Err(err).Msg("unable to get main object fields")
-		return nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, nil, nil, err
 	}
 	names := make([]string, 0)
 	err = json.Unmarshal([]byte(jsonStr), &names)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to unmarshal main object fields")
-		return nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, nil, nil, err
 	}
 
 	results := make(map[string]*resource.DesiredComposed)
@@ -369,6 +422,8 @@ func (e *JsonnetExecutor) execFile(
 	requestsErrors := make(map[string]error)
 	outputs := make(map[string]interface{})
 	outputsErrs := make(map[string]error)
+	inputs := make(map[string]*crossform)
+	inputsErrs := make(map[string]error)
 
 	for _, name := range names {
 		log := log.With().Str("file", filename).Str("field", name).Logger()
@@ -376,19 +431,18 @@ func (e *JsonnetExecutor) execFile(
 		metadata, err := e.getMetadata(fileImport, name, filename, vm, log)
 		if err != nil {
 			log.Error().Err(err).Str("field", name).Str("json", jsonStr).Msg("unable to get crossform metadata")
-			return nil, nil, nil, nil, nil, nil, err
+			return nil, nil, nil, nil, nil, nil, nil, nil, err
 		}
 
 		switch metadata.Type {
 		case "resource":
 			if evaluate {
 				res, err := e.getResource(fileImport, name, metadata, vm, log)
-				if err == nil {
-					results[metadata.Id] = res
-				} else {
+				if err != nil {
 					errs[metadata.Id] = err
 					continue
 				}
+				results[metadata.Id] = res
 				log.Debug().Str("id", metadata.Id).Msg("resource unmarshal success")
 			}
 		case "request":
@@ -410,7 +464,16 @@ func (e *JsonnetExecutor) execFile(
 				outputs[metadata.Id] = crossform.Output
 				log.Debug().Str("id", metadata.Id).Msg("outputs unmarshal success")
 			}
+		case "input":
+			crossform, err := e.getCrossformObject(fileImport, name, vm, log)
+			if err != nil {
+				log.Warn().Err(err).Str("field", name).Str("json", jsonStr).Msg("unable to unmarshal crossform object")
+				inputsErrs[metadata.Id] = err
+				continue
+			}
+			inputs[metadata.Id] = crossform
+			log.Debug().Str("id", metadata.Id).Msg("input unmarshal success")
 		}
 	}
-	return results, errs, requests, requestsErrors, outputs, outputsErrs, nil
+	return results, errs, requests, requestsErrors, outputs, outputsErrs, inputs, inputsErrs, nil
 }

@@ -45,6 +45,19 @@ spec:
                 report:
                   type: object
                   properties:
+                    inputsValidation:
+                      type: string
+                    inputs:
+                      type: object
+                      additionalProperties:
+                        type: object
+                        properties:
+                          ok:
+                            type: boolean
+                          error:
+                            type: string
+                        required:
+                          - ok
                     resources:
                       type: object
                       additionalProperties:

@@ -47,7 +47,7 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 
 	rsp := response.To(req, response.DefaultTTL)
 
-	desired, err := request.GetDesiredComposedResources(req)
+	_, err := request.GetDesiredComposedResources(req)
 	if err != nil {
 		f.log.Error().Err(err).Msg("cannot get desired resources")
 		response.Fatal(rsp, errors.Wrapf(err, "cannot get desired resources from %T", req))
@@ -93,17 +93,15 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		XR:                 xr,
 		Context:            string(ctxJson),
 	})
-	if err != nil {
-		f.log.Error().Err(err).Msg("execution error")
-		response.Fatal(rsp, errors.Wrapf(err, "execution error in %T", rsp))
-		return rsp, nil
-	}
-	for k := range result.Desired {
-		_, exist := desired[k]
-		if exist {
-			f.log.Error().Str("id", string(k)).Msg("duplicated ID found. check function input.name")
-			response.Fatal(rsp, errors.Wrapf(err, "duplicated ID=%s found. check function input.name", k))
-			return rsp, nil
+	fatal := false
+	if err != nil || len(result.InputsErrors) > 0 || len(result.RequestErrors) > 0 || result.InputsValidationError != nil {
+		f.log.Error().Err(err).Msg("execution critical error, stop changing resources and outputs")
+		response.Warning(rsp, errors.New("execution critical error, stop changing resources and outputs"))
+		fatal = true
+
+		result.Desired = make(map[resource.Name]*resource.DesiredComposed)
+		for k, v := range observed {
+			result.Desired[k] = &resource.DesiredComposed{Resource: v.Resource}
 		}
 	}
 
@@ -149,42 +147,44 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		delete(v.Resource.Object, "status")
 	}
 
-	for k, v := range result.Desired {
-		apiVersion, ok := v.Resource.Object["apiVersion"]
-		if !ok {
-			continue
+	if !fatal {
+		for k, v := range result.Desired {
+			apiVersion, ok := v.Resource.Object["apiVersion"]
+			if !ok {
+				continue
+			}
+			kind, ok := v.Resource.Object["kind"]
+			if !ok {
+				continue
+			}
+			metadata, ok := v.Resource.Object["metadata"]
+			if !ok {
+				continue
+			}
+			metadataTyped, ok := metadata.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			name, ok := metadataTyped["name"]
+			if !ok {
+				continue
+			}
+			if apiVersion != xr.Resource.Object["apiVersion"] {
+				continue
+			}
+			if kind != xr.Resource.Object["kind"] {
+				continue
+			}
+			metadata, _ = xr.Resource.Object["metadata"]
+			metadataTyped, _ = metadata.(map[string]interface{})
+			if name != metadataTyped["name"] {
+				continue
+			}
+			delete(result.Desired, k)
+			x := resource.Composite{}
+			x.Resource.Object = v.Resource.Object
+			xr = &x
 		}
-		kind, ok := v.Resource.Object["kind"]
-		if !ok {
-			continue
-		}
-		metadata, ok := v.Resource.Object["metadata"]
-		if !ok {
-			continue
-		}
-		metadataTyped, ok := metadata.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		name, ok := metadataTyped["name"]
-		if !ok {
-			continue
-		}
-		if apiVersion != xr.Resource.Object["apiVersion"] {
-			continue
-		}
-		if kind != xr.Resource.Object["kind"] {
-			continue
-		}
-		metadata, _ = xr.Resource.Object["metadata"]
-		metadataTyped, _ = metadata.(map[string]interface{})
-		if name != metadataTyped["name"] {
-			continue
-		}
-		delete(result.Desired, k)
-		x := resource.Composite{}
-		x.Resource.Object = v.Resource.Object
-		xr = &x
 	}
 	delete(xr.Resource.Object, "metadata")
 	delete(xr.Resource.Object, "spec")
@@ -195,7 +195,6 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		xr.Resource.Object["status"] = status
 	}
 	status["hasErrors"] = len(result.DesiredErrors) > 0 || len(result.OutputsErrors) > 0
-	//status["report"] = "\n  " + strings.Replace(result.Report, "\n", "  \n", -1)
 	report := newReport(result)
 	status["report"] = structs.Map(report)
 
@@ -211,7 +210,9 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		rr["commitSha"] = repo.Status.CommitSha
 		rr["ok"] = repo.Status.IsInitialized && repo.Status.IsUpdateSuccess
 	}
-	status["outputs"] = result.Outputs
+	if !fatal {
+		status["outputs"] = result.Outputs
+	}
 
 	err = response.SetDesiredCompositeResource(rsp, xr)
 	if err != nil {
@@ -232,7 +233,11 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		return rsp, nil
 	}
 
-	response.Normalf(rsp, report.String())
+	if fatal {
+		response.Warning(rsp, errors.New(report.String()))
+	} else {
+		response.Normalf(rsp, report.String())
+	}
 
 	return rsp, nil
 }

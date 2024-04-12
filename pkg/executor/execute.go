@@ -17,12 +17,15 @@ type ExecCommand struct {
 }
 
 type ExecResult struct {
-	Desired       map[resource.Name]*resource.DesiredComposed
-	DesiredErrors map[string]error
-	Request       map[string]*fnv1beta1.ResourceSelector
-	RequestErrors map[string]error
-	Outputs       map[string]interface{}
-	OutputsErrors map[string]error
+	Desired               map[resource.Name]*resource.DesiredComposed
+	DesiredErrors         map[string]error
+	Request               map[string]*fnv1beta1.ResourceSelector
+	RequestErrors         map[string]error
+	Outputs               map[string]interface{}
+	OutputsErrors         map[string]error
+	Inputs                map[string]string
+	InputsErrors          map[string]error
+	InputsValidationError error
 }
 
 func NewExecResult() *ExecResult {
@@ -33,5 +36,7 @@ func NewExecResult() *ExecResult {
 		RequestErrors: make(map[string]error),
 		Outputs:       make(map[string]interface{}),
 		OutputsErrors: make(map[string]error),
+		Inputs:        make(map[string]string),
+		InputsErrors:  make(map[string]error),
 	}
 }

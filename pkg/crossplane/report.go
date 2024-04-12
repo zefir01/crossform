@@ -19,9 +19,11 @@ func (i *reportItem) String(typ string, id string) string {
 }
 
 type report struct {
-	Resources map[string]reportItem `json:"resources,omitempty" structs:"resources,omitempty"`
-	Requests  map[string]reportItem `json:"requests,omitempty" structs:"requests,omitempty"`
-	Outputs   map[string]reportItem `json:"outputs,omitempty" structs:"outputs,omitempty"`
+	Resources        map[string]reportItem `json:"resources,omitempty" structs:"resources,omitempty"`
+	Requests         map[string]reportItem `json:"requests,omitempty" structs:"requests,omitempty"`
+	Outputs          map[string]reportItem `json:"outputs,omitempty" structs:"outputs,omitempty"`
+	Inputs           map[string]reportItem `json:"inputs,omitempty" structs:"inputs,omitempty"`
+	InputsValidation string                `json:"inputsValidation,omitempty" structs:"inputsValidation,omitempty"`
 }
 
 func (r *report) String() string {
@@ -35,14 +37,23 @@ func (r *report) String() string {
 	for k, v := range r.Outputs {
 		items = append(items, v.String("Output", k))
 	}
-	return strings.Join(items, "\n")
+	for k, v := range r.Inputs {
+		items = append(items, v.String("Input", k))
+	}
+	inputsValidation := fmt.Sprintf("Inputs validation: %s\n", r.InputsValidation)
+	return inputsValidation + strings.Join(items, "\n")
 }
 
 func newReport(result *executor.ExecResult) *report {
 	r := &report{
-		Requests:  make(map[string]reportItem),
-		Resources: make(map[string]reportItem),
-		Outputs:   make(map[string]reportItem),
+		Requests:         make(map[string]reportItem),
+		Resources:        make(map[string]reportItem),
+		Outputs:          make(map[string]reportItem),
+		Inputs:           make(map[string]reportItem),
+		InputsValidation: "OK",
+	}
+	if result.InputsValidationError != nil {
+		r.InputsValidation = result.InputsValidationError.Error()
 	}
 	for k := range result.Request {
 		item := reportItem{
@@ -82,6 +93,19 @@ func newReport(result *executor.ExecResult) *report {
 			Error: v.Error(),
 		}
 		r.Outputs[k] = item
+	}
+	for k := range result.Inputs {
+		item := reportItem{
+			Ok: true,
+		}
+		r.Inputs[k] = item
+	}
+	for k, v := range result.InputsErrors {
+		item := reportItem{
+			Ok:    false,
+			Error: v.Error(),
+		}
+		r.Inputs[k] = item
 	}
 	return r
 }

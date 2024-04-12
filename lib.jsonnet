@@ -48,7 +48,24 @@ local getCondition(obj, type) =
       },
     },
 
-  input(name):: xr.spec.inputs[name],
+  input(name, type=null, description=null, default=null, schema=null):: {
+    assert (type!='object' && type!='array') || schema!=null: 'You have to define schema for complex types e.g. object, array',
+    assert schema==null || (type==null && description==null): 'If you define schema, parameters type and description are not allowed',
+    crossform:: {
+      metadata: {
+        id: name,
+        type: 'input',
+      },
+      [if type!=null || schema!=null then 'schema']: if schema==null then {
+        type: type,
+        [if default!=null then 'default']: default,
+        [if description!=null then 'description']: description,
+      } else schema,
+    },
+    value: if default!=null then xr.spec.inputs[name]
+    else std.get(xr.spec.inputs, name, default),
+  },
+
   output(id, value):: {
     crossform:: {
       metadata: {
