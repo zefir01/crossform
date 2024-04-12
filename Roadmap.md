@@ -5,8 +5,6 @@
 
 - create function pod restart issue
 - dependOn
-- IO schema validation
-  https://stackoverflow.com/questions/48752908/openapi-spec-validation-in-golang
 - implement jsonnet bandler
 - cue support
 - local debug runner?
