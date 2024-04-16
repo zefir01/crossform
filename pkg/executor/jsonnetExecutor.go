@@ -96,7 +96,7 @@ func (e *JsonnetExecutor) makeRequestResult(
 	return nil
 }
 
-func (e *JsonnetExecutor) validate(inputs map[string]*crossform, input map[string]interface{}) error {
+func (e *JsonnetExecutor) validateInputs(inputs map[string]*crossform, input map[string]interface{}) error {
 	schema := make(map[string]interface{})
 	schema["type"] = "object"
 	schema["required"] = make([]string, 0)
@@ -169,7 +169,7 @@ func (e *JsonnetExecutor) Exec() (*ExecResult, error) {
 
 		xrSpec := e.cmd.XR.Resource.Object["spec"]
 		xrInputs := xrSpec.(map[string]interface{})["inputs"]
-		if err := e.validate(inputs, xrInputs.(map[string]interface{})); err != nil {
+		if err := e.validateInputs(inputs, xrInputs.(map[string]interface{})); err != nil {
 			e.log.Error().Err(err).Msg("Inputs schema validation error")
 			result.InputsValidationError = err
 		}
@@ -189,9 +189,6 @@ func (e *JsonnetExecutor) Exec() (*ExecResult, error) {
 			}
 		}
 		if insufficientRequestedResources {
-			//for k, v := range e.cmd.Observed {
-			//	result.Desired[k] = &resource.DesiredComposed{Resource: v.Resource}
-			//}
 			err := e.makeRequestResult(result.Request, request)
 			if err != nil {
 				return nil, err
