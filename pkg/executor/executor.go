@@ -3,26 +3,31 @@ package executor
 import (
 	"crossform.io/pkg/logger"
 	"encoding/json"
-	"fmt"
 	"github.com/crossplane/crossplane-runtime/pkg/errors"
 	fnv1beta1 "github.com/crossplane/function-sdk-go/proto/v1beta1"
 	"github.com/crossplane/function-sdk-go/resource"
 	"github.com/crossplane/function-sdk-go/resource/composed"
-	"github.com/google/go-jsonnet"
 	"github.com/rs/zerolog"
-	"github.com/santhosh-tekuri/jsonschema/v5"
-	"os"
-	"strings"
 )
 
-type JsonnetExecutor struct {
-	log  zerolog.Logger
-	cmd  *ExecCommand
-	path string
+type genericExecutor interface {
+	GetFileNames() []string
+	GetFields(fileName string) []string
+	GetMetadataObject(fileName, field string) *metadata
+	GetCrossformObject(fileName, field string) (*crossform, error)
+	ValidateInputs(inputs map[string]*crossform, input map[string]interface{}) error
+	GetResource(fileName, field string) (map[string]interface{}, bool, resource.Ready, error)
 }
 
-func NewJsonnetExecutor(cmd *ExecCommand, path string) *JsonnetExecutor {
-	return &JsonnetExecutor{
+type Executor struct {
+	log      zerolog.Logger
+	cmd      *ExecCommand
+	path     string
+	executor genericExecutor
+}
+
+func NewExecutor(cmd *ExecCommand, path string) (*Executor, error) {
+	e := &Executor{
 		log: logger.GetLogger("jsonnetExecutor").With().
 			Str("url", cmd.RepositoryUrl).
 			Str("revision", cmd.RepositoryRevision).
@@ -31,9 +36,21 @@ func NewJsonnetExecutor(cmd *ExecCommand, path string) *JsonnetExecutor {
 		cmd:  cmd,
 		path: path,
 	}
+
+	observed, requested, xr, context, err := e.marshal()
+
+	ex, err := newJsonnetExecutor(path+"/"+cmd.Path, observed, requested, xr, context)
+	if err != nil {
+		return nil, err
+	}
+	if ex == nil {
+		return nil, errors.New("jsonnet file not found")
+	}
+	e.executor = ex
+	return e, nil
 }
 
-func (e *JsonnetExecutor) marshal() (string, string, string, string, error) {
+func (e *Executor) marshal() (string, string, string, string, error) {
 	temp := make(map[string]interface{})
 	for k, v := range e.cmd.Observed {
 		temp[string(k)] = v.Resource.Object
@@ -66,7 +83,7 @@ func (e *JsonnetExecutor) marshal() (string, string, string, string, error) {
 	return observedJson, requestedJson, string(xrJson), e.cmd.Context, nil
 }
 
-func (e *JsonnetExecutor) makeRequestResult(
+func (e *Executor) makeRequestResult(
 	requestResult map[string]*fnv1beta1.ResourceSelector,
 	request map[string]*crossform,
 ) error {
@@ -96,80 +113,22 @@ func (e *JsonnetExecutor) makeRequestResult(
 	return nil
 }
 
-func (e *JsonnetExecutor) validateInputs(inputs map[string]*crossform, input map[string]interface{}) error {
-	schema := make(map[string]interface{})
-	schema["type"] = "object"
-	schema["required"] = make([]string, 0)
-	schema["properties"] = make(map[string]interface{})
-	properties := schema["properties"].(map[string]interface{})
-
-	for k, v := range inputs {
-		if v.Schema == nil {
-			continue
-		}
-		properties[k] = v.Schema
-		if _, exist := v.Schema["default"]; !exist {
-			schema["required"] = append(schema["required"].([]string), k)
-		}
-	}
-	compiler := jsonschema.NewCompiler()
-	j, err := json.Marshal(schema)
-	if err != nil {
-		return err
-	}
-	if err := compiler.AddResource("https://crossform.io/inputs", strings.NewReader(string(j))); err != nil {
-		return err
-	}
-	sch, err := compiler.Compile("https://crossform.io/inputs")
-	if err != nil {
-		return err
-	}
-	if err = sch.Validate(input); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (e *JsonnetExecutor) Exec() (*ExecResult, error) {
-	e.log.Debug().Msg("start jsonnet execution")
-
-	observed, requested, xr, context, err := e.marshal()
-	vm := jsonnet.MakeVM()
-	vm.ExtCode("observed", observed)
-	vm.ExtCode("requested", requested)
-	vm.ExtCode("xr", xr)
-	vm.ExtCode("context", context)
-	lib, err := os.ReadFile("lib.jsonnet")
-	if err != nil {
-		return nil, err
-	}
-	vm.ExtCode("crossform", string(lib))
-	e.log.Debug().Msg("jsonnet VM created")
+func (e *Executor) Exec() (*ExecResult, error) {
+	e.log.Debug().Msg("start execution")
 
 	result := NewExecResult()
 
-	files, err := os.ReadDir(e.path + "/" + e.cmd.Path)
-	if err != nil {
-		return nil, errors.Wrap(err, "Path not found")
-	}
-	for _, v := range files {
-		if v.IsDir() || !v.Type().IsRegular() {
-			continue
-		}
-		if !strings.HasSuffix(v.Name(), ".jsonnet") {
-			continue
-		}
-		filename := e.path + "/" + e.cmd.Path + "/" + v.Name()
+	for _, file := range e.executor.GetFileNames() {
 
 		desired, desiredErrors, resourcesDeferred, request, requestsErrs, outputs, outputsErrs, inputs, inputsErrs, err :=
-			e.execFile(observed, requested, xr, context, vm, filename, false)
+			e.execFile(file, false)
 		if err != nil {
 			return nil, errors.Wrap(err, "Jsonnet execution fatal error")
 		}
 
 		xrSpec := e.cmd.XR.Resource.Object["spec"]
 		xrInputs := xrSpec.(map[string]interface{})["inputs"]
-		if err := e.validateInputs(inputs, xrInputs.(map[string]interface{})); err != nil {
+		if err := e.executor.ValidateInputs(inputs, xrInputs.(map[string]interface{})); err != nil {
 			e.log.Error().Err(err).Msg("Inputs schema validation error")
 			result.InputsValidationError = err
 		}
@@ -197,7 +156,7 @@ func (e *JsonnetExecutor) Exec() (*ExecResult, error) {
 		}
 
 		desired, desiredErrors, resourcesDeferred, request, requestsErrs, outputs, outputsErrs, inputs, inputsErrs, err =
-			e.execFile(observed, requested, xr, context, vm, filename, true)
+			e.execFile(file, true)
 		if err != nil {
 			return nil, errors.Wrap(err, "Jsonnet execution fatal error")
 		}
@@ -287,100 +246,7 @@ func (e *JsonnetExecutor) Exec() (*ExecResult, error) {
 	return result, nil
 }
 
-func (e *JsonnetExecutor) getCrossformObject(fileImport string,
-	name string,
-	vm *jsonnet.VM,
-	log zerolog.Logger,
-) (*crossform, error) {
-	var crossform crossform
-	getCrossform := fmt.Sprintf("%s m['%s'].crossform", fileImport, name)
-	jsonStr, err := vm.EvaluateAnonymousSnippet("example1.jsonnet", getCrossform)
-	if err != nil {
-		log.Warn().Err(err).Str("field", name).Str("json", jsonStr).Msg("unable to get crossform object")
-		return nil, err
-	}
-	err = json.Unmarshal([]byte(jsonStr), &crossform)
-	if err != nil {
-		log.Error().Err(err).Str("field", name).Str("json", jsonStr).Msg("unable to unmarshal crossform object")
-		return nil, err
-	}
-	return &crossform, nil
-}
-
-func (e *JsonnetExecutor) getResource(
-	fileImport string,
-	name string,
-	metadata *metadata,
-	vm *jsonnet.VM,
-	log zerolog.Logger,
-) (*resource.DesiredComposed, bool, error) {
-	crossform, err := e.getCrossformObject(fileImport, name, vm, log)
-	if err != nil {
-		return nil, false, err
-	}
-	if crossform.Deferred {
-		return nil, crossform.Deferred, nil
-	}
-
-	exec := fmt.Sprintf("%s m['%s']", fileImport, name)
-	log.Debug().Str("id", metadata.Id).Str("jsonnetCode", exec).Msg("evaluating resource")
-	jsonStr, err := vm.EvaluateAnonymousSnippet("example1.jsonnet", exec)
-	if err != nil {
-		e.log.Warn().Err(err).Str("field", name).Str("id", metadata.Id).Str("jsonnetCode", exec).Msg("error evaluating resource")
-		return nil, false, err
-	}
-
-	var obj map[string]interface{}
-	err = json.Unmarshal([]byte(jsonStr), &obj)
-	if err != nil {
-		log.Error().Err(err).Str("id", metadata.Id).Str("json", jsonStr).Msg("unable to unmarshal resource")
-		return nil, false, err
-	}
-
-	ready := resource.ReadyUnspecified
-	if crossform.Ready.Valid {
-		if crossform.Ready.Bool {
-			ready = resource.ReadyTrue
-		} else {
-			ready = resource.ReadyFalse
-		}
-	}
-
-	log.Debug().Str("id", metadata.Id).Str("json", jsonStr).Msg("resource evaluating success")
-
-	var t composed.Unstructured
-	t.Unstructured.Object = obj
-	return &resource.DesiredComposed{Resource: &t, Ready: ready}, crossform.Deferred, nil
-}
-
-func (e *JsonnetExecutor) getMetadata(
-	fileImport string,
-	name string,
-	filename string,
-	vm *jsonnet.VM,
-	log zerolog.Logger,
-) (*metadata, error) {
-	var metadata metadata
-	getMetadata := fmt.Sprintf("%s m['%s'].crossform.metadata", fileImport, name)
-	jsonStr, err := vm.EvaluateAnonymousSnippet("example1.jsonnet", getMetadata)
-	if err != nil {
-		log.Error().Err(err).Str("field", name).Str("json", jsonStr).Msg("unable to get crossform metadata")
-		return nil, errors.Wrapf(err, "unable to get crossform metadata. file=%s field=%s", filename, name)
-	}
-	err = json.Unmarshal([]byte(jsonStr), &metadata)
-	if err != nil {
-		log.Error().Err(err).Str("field", name).Str("json", jsonStr).Msg("unable to unmarshal crossform metadata")
-		return nil, errors.Wrapf(err, "unable to unmarshal crossform metadata. file=%s field=%s", filename, name)
-	}
-	return &metadata, nil
-}
-
-func (e *JsonnetExecutor) execFile(
-	observed,
-	requested,
-	xr string,
-	context string,
-	vm *jsonnet.VM,
+func (e *Executor) execFile(
 	filename string,
 	evaluate bool,
 ) (
@@ -395,28 +261,12 @@ func (e *JsonnetExecutor) execFile(
 	map[string]error,
 	error,
 ) {
-	e.log.Debug().Str("observed", observed).
-		Str("requested", requested).
-		Str("xr", xr).
-		Str("context", context).
+	e.log.Debug().
 		Str("file", filename).
 		Msg("begin jsonnet execution")
 	log := e.log.With().Str("file", filename).Logger()
 
-	fileImport := fmt.Sprintf("local m = import '%s';", filename)
-
-	e.log.Debug().Msg("getting outputs object fields")
-	jsonStr, err := vm.EvaluateAnonymousSnippet("example1.jsonnet", fmt.Sprintf("%s std.objectFields(m)", fileImport))
-	if err != nil {
-		log.Error().Err(err).Msg("unable to get main object fields")
-		return nil, nil, nil, nil, nil, nil, nil, nil, nil, err
-	}
-	names := make([]string, 0)
-	err = json.Unmarshal([]byte(jsonStr), &names)
-	if err != nil {
-		log.Error().Err(err).Msg("unable to unmarshal main object fields")
-		return nil, nil, nil, nil, nil, nil, nil, nil, nil, err
-	}
+	names := e.executor.GetFields(filename)
 
 	resources := make(map[string]*resource.DesiredComposed)
 	resourcesErrs := make(map[string]error)
@@ -431,16 +281,12 @@ func (e *JsonnetExecutor) execFile(
 	for _, name := range names {
 		log := log.With().Str("file", filename).Str("field", name).Logger()
 
-		metadata, err := e.getMetadata(fileImport, name, filename, vm, log)
-		if err != nil {
-			log.Error().Err(err).Str("field", name).Str("json", jsonStr).Msg("unable to get crossform metadata")
-			return nil, nil, nil, nil, nil, nil, nil, nil, nil, err
-		}
+		metadata := e.executor.GetMetadataObject(filename, name)
 
 		switch metadata.Type {
 		case "resource":
 			if evaluate {
-				res, isDeferred, err := e.getResource(fileImport, name, metadata, vm, log)
+				res, isDeferred, ready, err := e.executor.GetResource(filename, name)
 				if err != nil {
 					resourcesErrs[metadata.Id] = err
 					continue
@@ -448,14 +294,15 @@ func (e *JsonnetExecutor) execFile(
 				if isDeferred {
 					resourcesDeferred = append(resourcesDeferred, metadata.Id)
 				} else {
-					resources[metadata.Id] = res
+					var t composed.Unstructured
+					t.Unstructured.Object = res
+					resources[metadata.Id] = &resource.DesiredComposed{Resource: &t, Ready: ready}
 				}
 				log.Debug().Str("id", metadata.Id).Msg("resource unmarshal success")
 			}
 		case "request":
-			crossform, err := e.getCrossformObject(fileImport, name, vm, log)
+			crossform, err := e.executor.GetCrossformObject(filename, name)
 			if err != nil {
-				log.Warn().Err(err).Str("field", name).Str("json", jsonStr).Msg("unable to unmarshal crossform object")
 				requestsErrs[metadata.Id] = err
 				continue
 			}
@@ -463,7 +310,7 @@ func (e *JsonnetExecutor) execFile(
 			log.Debug().Str("id", metadata.Id).Msg("request unmarshal success")
 		case "output":
 			if evaluate {
-				crossform, err := e.getCrossformObject(fileImport, name, vm, log)
+				crossform, err := e.executor.GetCrossformObject(filename, name)
 				if err != nil {
 					outputsErrs[metadata.Id] = err
 					continue
@@ -472,9 +319,8 @@ func (e *JsonnetExecutor) execFile(
 				log.Debug().Str("id", metadata.Id).Msg("outputs unmarshal success")
 			}
 		case "input":
-			crossform, err := e.getCrossformObject(fileImport, name, vm, log)
+			crossform, err := e.executor.GetCrossformObject(filename, name)
 			if err != nil {
-				log.Warn().Err(err).Str("field", name).Str("json", jsonStr).Msg("unable to unmarshal crossform object")
 				inputsErrs[metadata.Id] = err
 				continue
 			}

@@ -461,7 +461,6 @@ func (repo *Repo) Execute(task *executor.ExecCommand) (*executor.ExecResult, err
 
 	res, err := executor.Execute(repo.config.Path, task)
 	if err != nil {
-		repo.log.Error().Err(err).Msg("Execution error")
 		return nil, err
 	}
 	return res, err

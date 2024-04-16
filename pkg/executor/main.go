@@ -1,6 +1,9 @@
 package executor
 
 func Execute(path string, cmd *ExecCommand) (*ExecResult, error) {
-	e := NewJsonnetExecutor(cmd, path)
+	e, err := NewExecutor(cmd, path)
+	if err != nil {
+		return nil, err
+	}
 	return e.Exec()
 }
