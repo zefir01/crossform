@@ -42,12 +42,13 @@
 #resource: {
   _id: string
   _deferred: bool | *false | _
+  _ready: bool | *(len([ for _, n in *_observed[_id].status.conditions | {} if (n.type == "Ready" || n.type == "Synced") && n.status=="True" {}])==2) | _
   _crossform:{
     metadata:{
       id: _id
       type: "resource"
     }
-    ready: len([ for _, n in *_observed[_id].status.conditions | {} if (n.type == "Ready" || n.type == "Synced") && n.status=="True" {}])==2
+    ready: _ready
     deferred: _deferred
   }
   *_observed[_id] | {}

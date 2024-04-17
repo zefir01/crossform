@@ -48,7 +48,7 @@ local isReady(res) =
     result: std.get(requested, id, if std.type(selector)=='string' then {} else []),
   },
 
-  resource(id, obj, dependOn=null)::
+  resource(id, obj, dependOn=null, ready=null)::
     std.mergePatch(std.get(observed, id, {}), obj)
     +
     {
@@ -58,7 +58,7 @@ local isReady(res) =
           id: id,
           type: 'resource',
         },
-        ready: conditionsTrue(id),
+        ready: if ready==null then conditionsTrue(id) else ready,
         deferred: if dependOn==null then false else isReady(dependOn),
       },
     },

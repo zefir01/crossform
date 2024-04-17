@@ -95,8 +95,8 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 	fatal := false
 	criticalError := ""
 	if err != nil || len(result.InputsErrors) > 0 || len(result.RequestErrors) > 0 || result.InputsValidationError != nil {
-		f.log.Error().Err(err).Msg("execution critical error, stop changing resources and outputs")
-		response.Warning(rsp, errors.New("execution critical error, stop changing resources and outputs"))
+		f.log.Error().Err(err).Msg("execution critical error, changes disabled")
+		response.Warning(rsp, errors.New("execution critical error, changes disabled"))
 		fatal = true
 		if err != nil {
 			criticalError = err.Error()
