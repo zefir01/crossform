@@ -43,6 +43,7 @@ type report struct {
 	Outputs          map[string]string `json:"outputs,omitempty" structs:"outputs,omitempty"`
 	Inputs           map[string]string `json:"inputs,omitempty" structs:"inputs,omitempty"`
 	InputsValidation string            `json:"inputsValidation,omitempty" structs:"inputsValidation,omitempty"`
+	CriticalError    string            `json:"criticalError,omitempty" structs:"criticalError,omitempty"`
 	items            []*reportItem
 }
 
@@ -62,7 +63,7 @@ func (r *report) Map() (map[string]interface{}, error) {
 	return v, err
 }
 
-func newReport(result *executor.ExecResult) *report {
+func newReport(result *executor.ExecResult, criticalError string) *report {
 	r := &report{
 		Requests:         make(map[string]string),
 		Resources:        make(map[string]string),
@@ -119,5 +120,6 @@ func newReport(result *executor.ExecResult) *report {
 		r.items = append(r.items, i)
 		r.Inputs[k] = i.Status()
 	}
+	r.CriticalError = criticalError
 	return r
 }

@@ -93,10 +93,17 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		Context:            string(ctxJson),
 	})
 	fatal := false
+	criticalError := ""
 	if err != nil || len(result.InputsErrors) > 0 || len(result.RequestErrors) > 0 || result.InputsValidationError != nil {
 		f.log.Error().Err(err).Msg("execution critical error, stop changing resources and outputs")
 		response.Warning(rsp, errors.New("execution critical error, stop changing resources and outputs"))
 		fatal = true
+		if err != nil {
+			criticalError = err.Error()
+			if result == nil {
+				result = executor.NewExecResult()
+			}
+		}
 
 		result.Desired = make(map[resource.Name]*resource.DesiredComposed)
 		for k, v := range observed {
@@ -201,7 +208,7 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		xr.Resource.Object["status"] = status
 	}
 	status["hasErrors"] = len(result.DesiredErrors) > 0 || len(result.OutputsErrors) > 0 || fatal || len(result.Deferred) > 0
-	report := newReport(result)
+	report := newReport(result, criticalError)
 	status["report"], err = report.Map()
 	if err != nil {
 		f.log.Error().Err(err).Msg("cannot convert report")

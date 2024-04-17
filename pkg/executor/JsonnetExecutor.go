@@ -24,7 +24,7 @@ type jsonnetExecutor struct {
 	fields   map[string][]string
 }
 
-func newJsonnetExecutor(path, observed, requested, xr, context string) (*jsonnetExecutor, error) {
+func newJsonnetExecutor(path, observed, requested, xr, context string) (genericExecutor, error) {
 	e := jsonnetExecutor{
 		path: path,
 		log: logger.GetLogger("JsonnetExecutor").With().
@@ -40,9 +40,6 @@ func newJsonnetExecutor(path, observed, requested, xr, context string) (*jsonnet
 	if len(files) == 0 {
 		return nil, nil
 	}
-	//for i, v := range files {
-	//	files[i] = strings.TrimPrefix(v, e.path+"/")
-	//}
 
 	vm := jsonnet.MakeVM()
 	vm.ExtCode("observed", observed)

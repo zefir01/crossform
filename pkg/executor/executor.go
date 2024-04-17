@@ -8,6 +8,7 @@ import (
 	"github.com/crossplane/function-sdk-go/resource"
 	"github.com/crossplane/function-sdk-go/resource/composed"
 	"github.com/rs/zerolog"
+	"os"
 )
 
 type genericExecutor interface {
@@ -37,14 +38,25 @@ func NewExecutor(cmd *ExecCommand, path string) (*Executor, error) {
 		path: path,
 	}
 
+	if _, err := os.Stat(path + "/" + cmd.Path); os.IsNotExist(err) {
+		return nil, err
+	}
+
 	observed, requested, xr, context, err := e.marshal()
 
-	ex, err := newJsonnetExecutor(path+"/"+cmd.Path, observed, requested, xr, context)
+	var ex genericExecutor = nil
+	ex, err = newJsonnetExecutor(path+"/"+cmd.Path, observed, requested, xr, context)
 	if err != nil {
 		return nil, err
 	}
 	if ex == nil {
-		return nil, errors.New("jsonnet file not found")
+		ex, err = newCueExecutor(path+"/"+cmd.Path, observed, requested, xr, context)
+		if err != nil {
+			return nil, err
+		}
+		if ex == nil {
+			return nil, errors.New("project type not supported")
+		}
 	}
 	e.executor = ex
 	return e, nil

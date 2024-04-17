@@ -1,4 +1,3 @@
-# Replace this with your XR!
 apiVersion: crossform.io/v1alpha1
 kind: xModule
 metadata:
@@ -7,5 +6,16 @@ spec:
   repository: "git@github.com:zefir01/test2.git"
   revision: "main"
   path: "project1"
+  inputs:
+    test1: aaa
+---
+apiVersion: crossform.io/v1alpha1
+kind: xModule
+metadata:
+  name: test-cue
+spec:
+  repository: "git@github.com:zefir01/test2.git"
+  revision: "main"
+  path: "test-cue"
   inputs:
     test1: aaa
