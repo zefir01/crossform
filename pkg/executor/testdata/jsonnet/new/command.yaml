@@ -1,0 +1,567 @@
+repositoryurl: git@github.com:zefir01/test2.git
+repositoryrevision: main
+path: project1
+observed:
+    test1:
+        resource:
+            unstructured:
+                object:
+                    apiVersion: kubernetes.crossplane.io/v1alpha2
+                    kind: Object
+                    metadata:
+                        annotations:
+                            crossplane.io/composition-resource-name: test1
+                            crossplane.io/external-create-pending: "2024-04-16T23:49:48Z"
+                            crossplane.io/external-create-succeeded: "2024-04-16T23:49:48Z"
+                            crossplane.io/external-name: sample-namespace
+                        creationTimestamp: "2024-04-16T23:49:48Z"
+                        finalizers:
+                            - finalizer.managedresource.crossplane.io
+                        generateName: test1-
+                        generation: 2
+                        labels:
+                            crossplane.io/claim-name: ""
+                            crossplane.io/claim-namespace: ""
+                            crossplane.io/composite: test1
+                        managedFields:
+                            - apiVersion: kubernetes.crossplane.io/v1alpha2
+                              fieldsType: FieldsV1
+                              fieldsV1:
+                                f:metadata:
+                                    f:annotations:
+                                        f:crossplane.io/composition-resource-name: {}
+                                    f:finalizers:
+                                        v:"finalizer.managedresource.crossplane.io": {}
+                                    f:generateName: {}
+                                    f:labels:
+                                        f:crossplane.io/claim-name: {}
+                                        f:crossplane.io/claim-namespace: {}
+                                        f:crossplane.io/composite: {}
+                                    f:ownerReferences:
+                                        k:{"uid":"5dc9b48b-c64d-42b5-bd98-f0515f895aed"}: {}
+                                f:spec:
+                                    f:deletionPolicy: {}
+                                    f:forProvider:
+                                        f:manifest:
+                                            f:apiVersion: {}
+                                            f:kind: {}
+                                            f:metadata:
+                                                f:labels:
+                                                    f:example: {}
+                                    f:managementPolicies: {}
+                                    f:providerConfigRef:
+                                        f:name: {}
+                                    f:readiness:
+                                        f:policy: {}
+                              manager: apiextensions.crossplane.io/composed/e395cc1c249f744c11a49c9cf2815759b904e68321759d7e06b901eed1a97668
+                              operation: Apply
+                              time: "2024-04-16T23:49:48Z"
+                            - apiVersion: kubernetes.crossplane.io/v1alpha2
+                              fieldsType: FieldsV1
+                              fieldsV1:
+                                f:metadata:
+                                    f:annotations:
+                                        f:crossplane.io/external-create-pending: {}
+                                        f:crossplane.io/external-create-succeeded: {}
+                                        f:crossplane.io/external-name: {}
+                                    f:finalizers:
+                                        .: {}
+                                        v:"finalizer.managedresource.crossplane.io": {}
+                                f:spec:
+                                    f:readiness:
+                                        .: {}
+                                        f:policy: {}
+                              manager: crossplane-kubernetes-provider
+                              operation: Update
+                              time: "2024-04-16T23:49:48Z"
+                            - apiVersion: kubernetes.crossplane.io/v1alpha2
+                              fieldsType: FieldsV1
+                              fieldsV1:
+                                f:status:
+                                    .: {}
+                                    f:atProvider:
+                                        .: {}
+                                        f:manifest:
+                                            .: {}
+                                            f:apiVersion: {}
+                                            f:kind: {}
+                                            f:metadata:
+                                                .: {}
+                                                f:annotations:
+                                                    .: {}
+                                                    f:kubectl.kubernetes.io/last-applied-configuration: {}
+                                                f:creationTimestamp: {}
+                                                f:labels:
+                                                    .: {}
+                                                    f:example: {}
+                                                    f:kubernetes.io/metadata.name: {}
+                                                f:managedFields: {}
+                                                f:name: {}
+                                                f:resourceVersion: {}
+                                                f:uid: {}
+                                            f:spec:
+                                                .: {}
+                                                f:finalizers: {}
+                                            f:status:
+                                                .: {}
+                                                f:phase: {}
+                                    f:conditions:
+                                        .: {}
+                                        k:{"type":"Ready"}:
+                                            .: {}
+                                            f:lastTransitionTime: {}
+                                            f:reason: {}
+                                            f:status: {}
+                                            f:type: {}
+                                        k:{"type":"Synced"}:
+                                            .: {}
+                                            f:lastTransitionTime: {}
+                                            f:reason: {}
+                                            f:status: {}
+                                            f:type: {}
+                              manager: crossplane-kubernetes-provider
+                              operation: Update
+                              subresource: status
+                              time: "2024-04-16T23:49:48Z"
+                        name: sample-namespace
+                        ownerReferences:
+                            - apiVersion: crossform.io/v1alpha1
+                              blockOwnerDeletion: true
+                              controller: true
+                              kind: xModule
+                              name: test1
+                              uid: 5dc9b48b-c64d-42b5-bd98-f0515f895aed
+                        resourceVersion: "3564867"
+                        uid: 236a1d49-864b-45a2-97ee-b240266c81ad
+                    spec:
+                        deletionPolicy: Delete
+                        forProvider:
+                            manifest:
+                                apiVersion: v1
+                                kind: Namespace
+                                metadata:
+                                    labels:
+                                        example: "true"
+                        managementPolicies:
+                            - '*'
+                        providerConfigRef:
+                            name: kubernetes-provider
+                        readiness:
+                            policy: SuccessfulCreate
+                    status:
+                        atProvider:
+                            manifest:
+                                apiVersion: v1
+                                kind: Namespace
+                                metadata:
+                                    annotations:
+                                        kubectl.kubernetes.io/last-applied-configuration: '{"apiVersion":"v1","kind":"Namespace","metadata":{"labels":{"example":"true"}}}'
+                                    creationTimestamp: "2024-04-16T23:49:48Z"
+                                    labels:
+                                        example: "true"
+                                        kubernetes.io/metadata.name: sample-namespace
+                                    managedFields:
+                                        - apiVersion: v1
+                                          fieldsType: FieldsV1
+                                          fieldsV1:
+                                            f:metadata:
+                                                f:annotations:
+                                                    .: {}
+                                                    f:kubectl.kubernetes.io/last-applied-configuration: {}
+                                                f:labels:
+                                                    .: {}
+                                                    f:example: {}
+                                                    f:kubernetes.io/metadata.name: {}
+                                          manager: crossplane-kubernetes-provider
+                                          operation: Update
+                                          time: "2024-04-16T23:49:48Z"
+                                    name: sample-namespace
+                                    resourceVersion: "3564851"
+                                    uid: 0d24ef45-8ef2-4c81-9c57-08d9634cf39a
+                                spec:
+                                    finalizers:
+                                        - kubernetes
+                                status:
+                                    phase: Active
+                        conditions:
+                            - lastTransitionTime: "2024-04-16T23:49:48Z"
+                              reason: Available
+                              status: "True"
+                              type: Ready
+                            - lastTransitionTime: "2024-04-16T23:49:48Z"
+                              reason: ReconcileSuccess
+                              status: "True"
+                              type: Synced
+        connectiondetails: {}
+    test2:
+        resource:
+            unstructured:
+                object:
+                    apiVersion: kubernetes.crossplane.io/v1alpha2
+                    kind: Object
+                    metadata:
+                        annotations:
+                            crossplane.io/composition-resource-name: test2
+                            crossplane.io/external-create-pending: "2024-04-16T23:49:49Z"
+                            crossplane.io/external-create-succeeded: "2024-04-16T23:49:49Z"
+                            crossplane.io/external-name: sample-namespace-v1
+                        creationTimestamp: "2024-04-16T23:49:49Z"
+                        finalizers:
+                            - finalizer.managedresource.crossplane.io
+                        generateName: test1-
+                        generation: 2
+                        labels:
+                            crossplane.io/claim-name: ""
+                            crossplane.io/claim-namespace: ""
+                            crossplane.io/composite: test1
+                        managedFields:
+                            - apiVersion: kubernetes.crossplane.io/v1alpha2
+                              fieldsType: FieldsV1
+                              fieldsV1:
+                                f:metadata:
+                                    f:annotations:
+                                        f:crossplane.io/composition-resource-name: {}
+                                    f:finalizers:
+                                        v:"finalizer.managedresource.crossplane.io": {}
+                                    f:generateName: {}
+                                    f:labels:
+                                        f:crossplane.io/claim-name: {}
+                                        f:crossplane.io/claim-namespace: {}
+                                        f:crossplane.io/composite: {}
+                                    f:ownerReferences:
+                                        k:{"uid":"5dc9b48b-c64d-42b5-bd98-f0515f895aed"}: {}
+                                f:spec:
+                                    f:deletionPolicy: {}
+                                    f:forProvider:
+                                        f:manifest:
+                                            f:apiVersion: {}
+                                            f:kind: {}
+                                            f:metadata:
+                                                f:labels:
+                                                    f:example: {}
+                                    f:managementPolicies: {}
+                                    f:providerConfigRef:
+                                        f:name: {}
+                                    f:readiness:
+                                        f:policy: {}
+                              manager: apiextensions.crossplane.io/composed/e395cc1c249f744c11a49c9cf2815759b904e68321759d7e06b901eed1a97668
+                              operation: Apply
+                              time: "2024-04-16T23:49:49Z"
+                            - apiVersion: kubernetes.crossplane.io/v1alpha2
+                              fieldsType: FieldsV1
+                              fieldsV1:
+                                f:metadata:
+                                    f:annotations:
+                                        f:crossplane.io/external-create-pending: {}
+                                        f:crossplane.io/external-create-succeeded: {}
+                                        f:crossplane.io/external-name: {}
+                                    f:finalizers:
+                                        .: {}
+                                        v:"finalizer.managedresource.crossplane.io": {}
+                                f:spec:
+                                    f:readiness:
+                                        .: {}
+                                        f:policy: {}
+                              manager: crossplane-kubernetes-provider
+                              operation: Update
+                              time: "2024-04-16T23:49:49Z"
+                            - apiVersion: kubernetes.crossplane.io/v1alpha2
+                              fieldsType: FieldsV1
+                              fieldsV1:
+                                f:status:
+                                    .: {}
+                                    f:atProvider:
+                                        .: {}
+                                        f:manifest:
+                                            .: {}
+                                            f:apiVersion: {}
+                                            f:kind: {}
+                                            f:metadata:
+                                                .: {}
+                                                f:annotations:
+                                                    .: {}
+                                                    f:kubectl.kubernetes.io/last-applied-configuration: {}
+                                                f:creationTimestamp: {}
+                                                f:labels:
+                                                    .: {}
+                                                    f:example: {}
+                                                    f:kubernetes.io/metadata.name: {}
+                                                f:managedFields: {}
+                                                f:name: {}
+                                                f:resourceVersion: {}
+                                                f:uid: {}
+                                            f:spec:
+                                                .: {}
+                                                f:finalizers: {}
+                                            f:status:
+                                                .: {}
+                                                f:phase: {}
+                                    f:conditions:
+                                        .: {}
+                                        k:{"type":"Ready"}:
+                                            .: {}
+                                            f:lastTransitionTime: {}
+                                            f:reason: {}
+                                            f:status: {}
+                                            f:type: {}
+                                        k:{"type":"Synced"}:
+                                            .: {}
+                                            f:lastTransitionTime: {}
+                                            f:reason: {}
+                                            f:status: {}
+                                            f:type: {}
+                              manager: crossplane-kubernetes-provider
+                              operation: Update
+                              subresource: status
+                              time: "2024-04-16T23:49:49Z"
+                        name: sample-namespace-v1
+                        ownerReferences:
+                            - apiVersion: crossform.io/v1alpha1
+                              blockOwnerDeletion: true
+                              controller: true
+                              kind: xModule
+                              name: test1
+                              uid: 5dc9b48b-c64d-42b5-bd98-f0515f895aed
+                        resourceVersion: "3564884"
+                        uid: d3baddd3-5440-4028-9f1b-4f6638e58d1d
+                    spec:
+                        deletionPolicy: Delete
+                        forProvider:
+                            manifest:
+                                apiVersion: v1
+                                kind: Namespace
+                                metadata:
+                                    labels:
+                                        example: "true"
+                        managementPolicies:
+                            - '*'
+                        providerConfigRef:
+                            name: kubernetes-provider
+                        readiness:
+                            policy: SuccessfulCreate
+                    status:
+                        atProvider:
+                            manifest:
+                                apiVersion: v1
+                                kind: Namespace
+                                metadata:
+                                    annotations:
+                                        kubectl.kubernetes.io/last-applied-configuration: '{"apiVersion":"v1","kind":"Namespace","metadata":{"labels":{"example":"true"}}}'
+                                    creationTimestamp: "2024-04-16T23:49:49Z"
+                                    labels:
+                                        example: "true"
+                                        kubernetes.io/metadata.name: sample-namespace-v1
+                                    managedFields:
+                                        - apiVersion: v1
+                                          fieldsType: FieldsV1
+                                          fieldsV1:
+                                            f:metadata:
+                                                f:annotations:
+                                                    .: {}
+                                                    f:kubectl.kubernetes.io/last-applied-configuration: {}
+                                                f:labels:
+                                                    .: {}
+                                                    f:example: {}
+                                                    f:kubernetes.io/metadata.name: {}
+                                          manager: crossplane-kubernetes-provider
+                                          operation: Update
+                                          time: "2024-04-16T23:49:49Z"
+                                    name: sample-namespace-v1
+                                    resourceVersion: "3564876"
+                                    uid: 5daa43a3-267a-4c40-83c5-c5243262a8f9
+                                spec:
+                                    finalizers:
+                                        - kubernetes
+                                status:
+                                    phase: Active
+                        conditions:
+                            - lastTransitionTime: "2024-04-16T23:49:49Z"
+                              reason: Available
+                              status: "True"
+                              type: Ready
+                            - lastTransitionTime: "2024-04-16T23:49:49Z"
+                              reason: ReconcileSuccess
+                              status: "True"
+                              type: Synced
+        connectiondetails: {}
+requested:
+    test-request1: []
+modulename: test1
+xr:
+    resource:
+        unstructured:
+            object:
+                apiVersion: crossform.io/v1alpha1
+                kind: xModule
+                metadata:
+                    annotations:
+                        kubectl.kubernetes.io/last-applied-configuration: |
+                            {"apiVersion":"crossform.io/v1alpha1","kind":"xModule","metadata":{"annotations":{},"name":"test1"},"spec":{"inputs":{"test1":"aaa"},"path":"project1","repository":"git@github.com:zefir01/test2.git","revision":"main"}}
+                    creationTimestamp: "2024-04-16T23:49:46Z"
+                    finalizers:
+                        - composite.apiextensions.crossplane.io
+                    generation: 5
+                    labels:
+                        crossplane.io/composite: test1
+                    managedFields:
+                        - apiVersion: crossform.io/v1alpha1
+                          fieldsType: FieldsV1
+                          fieldsV1:
+                            f:spec:
+                                f:resourceRefs: {}
+                          manager: apiextensions.crossplane.io/composite
+                          operation: Apply
+                          time: "2024-04-16T23:49:49Z"
+                        - apiVersion: crossform.io/v1alpha1
+                          fieldsType: FieldsV1
+                          fieldsV1:
+                            f:status:
+                                f:conditions:
+                                    k:{"type":"Ready"}:
+                                        .: {}
+                                        f:lastTransitionTime: {}
+                                        f:reason: {}
+                                        f:status: {}
+                                        f:type: {}
+                                    k:{"type":"Synced"}:
+                                        .: {}
+                                        f:lastTransitionTime: {}
+                                        f:reason: {}
+                                        f:status: {}
+                                        f:type: {}
+                                f:hasErrors: {}
+                                f:outputs:
+                                    f:test1: {}
+                                f:report:
+                                    f:inputs:
+                                        f:test1: {}
+                                    f:inputsValidation: {}
+                                    f:outputs:
+                                        f:test1: {}
+                                    f:requests:
+                                        f:test-request1: {}
+                                    f:resources:
+                                        f:test1: {}
+                                        f:test2: {}
+                                f:repository:
+                                    f:commitSha: {}
+                                    f:message: {}
+                                    f:ok: {}
+                          manager: apiextensions.crossplane.io/composite
+                          operation: Apply
+                          subresource: status
+                          time: "2024-04-18T00:51:28Z"
+                        - apiVersion: crossform.io/v1alpha1
+                          fieldsType: FieldsV1
+                          fieldsV1:
+                            f:metadata:
+                                f:finalizers:
+                                    .: {}
+                                    v:"composite.apiextensions.crossplane.io": {}
+                                f:labels:
+                                    .: {}
+                                    f:crossplane.io/composite: {}
+                            f:spec:
+                                f:compositionRef:
+                                    .: {}
+                                    f:name: {}
+                                f:compositionRevisionRef:
+                                    .: {}
+                                    f:name: {}
+                          manager: crossplane
+                          operation: Update
+                          time: "2024-04-16T23:49:46Z"
+                        - apiVersion: crossform.io/v1alpha1
+                          fieldsType: FieldsV1
+                          fieldsV1:
+                            f:metadata:
+                                f:annotations:
+                                    .: {}
+                                    f:kubectl.kubernetes.io/last-applied-configuration: {}
+                            f:spec:
+                                .: {}
+                                f:compositionUpdatePolicy: {}
+                                f:inputs:
+                                    .: {}
+                                    f:test1: {}
+                                f:path: {}
+                                f:repoServer: {}
+                                f:repository: {}
+                                f:revision: {}
+                          manager: kubectl-client-side-apply
+                          operation: Update
+                          time: "2024-04-16T23:49:46Z"
+                        - apiVersion: crossform.io/v1alpha1
+                          fieldsType: FieldsV1
+                          fieldsV1:
+                            f:status:
+                                f:conditions:
+                                    .: {}
+                                    k:{"type":"Ready"}:
+                                        .: {}
+                                        f:lastTransitionTime: {}
+                                        f:reason: {}
+                                        f:status: {}
+                                        f:type: {}
+                                    k:{"type":"Synced"}:
+                                        .: {}
+                                        f:lastTransitionTime: {}
+                                        f:reason: {}
+                                        f:status: {}
+                                        f:type: {}
+                          manager: crossplane
+                          operation: Update
+                          subresource: status
+                          time: "2024-04-19T00:13:41Z"
+                    name: test1
+                    resourceVersion: "3878611"
+                    uid: 5dc9b48b-c64d-42b5-bd98-f0515f895aed
+                spec:
+                    compositionRef:
+                        name: crossform-default
+                    compositionRevisionRef:
+                        name: crossform-default-0d8ff14
+                    compositionUpdatePolicy: Automatic
+                    inputs:
+                        test1: aaa
+                    path: project1
+                    repoServer: 192.168.1.173:8083
+                    repository: git@github.com:zefir01/test2.git
+                    resourceRefs:
+                        - apiVersion: kubernetes.crossplane.io/v1alpha2
+                          kind: Object
+                          name: sample-namespace
+                        - apiVersion: kubernetes.crossplane.io/v1alpha2
+                          kind: Object
+                          name: sample-namespace-v1
+                    revision: main
+                status:
+                    conditions:
+                        - lastTransitionTime: "2024-04-19T00:13:41Z"
+                          reason: ReconcileSuccess
+                          status: "True"
+                          type: Synced
+                        - lastTransitionTime: "2024-04-16T23:49:49Z"
+                          reason: Available
+                          status: "True"
+                          type: Ready
+                    hasErrors: false
+                    outputs:
+                        test1: aaa
+                    report:
+                        inputs:
+                            test1: OK
+                        inputsValidation: OK
+                        outputs:
+                            test1: OK
+                        requests:
+                            test-request1: OK
+                        resources:
+                            test1: OK
+                            test2: OK
+                    repository:
+                        commitSha: 228a78fbf0008aa50900198a48ccd9fcbd9d132d
+                        message: No updates
+                        ok: true
+    connectiondetails: {}
+context: '{"apiextensions.crossplane.io/environment":{"apiVersion":"internal.crossplane.io/v1alpha1", "kind":"Environment"}}'

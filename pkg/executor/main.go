@@ -5,5 +5,9 @@ func Execute(path string, cmd *ExecCommand) (*ExecResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	return e.Exec()
+	result, err := e.Exec()
+	//if err == nil && len(cmd.Requested) == len(result.Request) {
+	//	_ = e.writeTestData(result, err)
+	//}
+	return result, err
 }

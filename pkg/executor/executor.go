@@ -7,7 +7,9 @@ import (
 	fnv1beta1 "github.com/crossplane/function-sdk-go/proto/v1beta1"
 	"github.com/crossplane/function-sdk-go/resource"
 	"github.com/crossplane/function-sdk-go/resource/composed"
+	cp "github.com/otiai10/copy"
 	"github.com/rs/zerolog"
+	"gopkg.in/yaml.v3"
 	"os"
 )
 
@@ -29,7 +31,7 @@ type Executor struct {
 
 func NewExecutor(cmd *ExecCommand, path string) (*Executor, error) {
 	e := &Executor{
-		log: logger.GetLogger("jsonnetExecutor").With().
+		log: logger.GetLogger("Executor").With().
 			Str("url", cmd.RepositoryUrl).
 			Str("revision", cmd.RepositoryRevision).
 			Str("directory", cmd.Path).
@@ -39,7 +41,7 @@ func NewExecutor(cmd *ExecCommand, path string) (*Executor, error) {
 	}
 
 	if _, err := os.Stat(path + "/" + cmd.Path); os.IsNotExist(err) {
-		return nil, err
+		return e, err
 	}
 
 	observed, requested, xr, context, err := e.marshal()
@@ -47,15 +49,15 @@ func NewExecutor(cmd *ExecCommand, path string) (*Executor, error) {
 	var ex genericExecutor = nil
 	ex, err = newJsonnetExecutor(path+"/"+cmd.Path, observed, requested, xr, context)
 	if err != nil {
-		return nil, err
+		return e, err
 	}
 	if ex == nil {
 		ex, err = newCueExecutor(path+"/"+cmd.Path, observed, requested, xr, context)
 		if err != nil {
-			return nil, err
+			return e, err
 		}
 		if ex == nil {
-			return nil, errors.New("project type not supported")
+			return e, errors.New("project type is not supported")
 		}
 	}
 	e.executor = ex
@@ -96,26 +98,26 @@ func (e *Executor) marshal() (string, string, string, string, error) {
 }
 
 func (e *Executor) makeRequestResult(
-	requestResult map[string]*fnv1beta1.ResourceSelector,
+	result map[string]*fnv1beta1.ResourceSelector,
 	request map[string]*crossform,
 ) error {
 	for k, v := range request {
-		_, exist := requestResult[k]
+		_, exist := result[k]
 		if exist {
 			err := errors.Errorf("duplicated id=%s detected, execution fatal", k)
 			e.log.Error().Err(err).Str("id", k).Msg("duplicated id detected, execution fatal")
 			return err
 		}
-		requestResult[k] = &fnv1beta1.ResourceSelector{
+		result[k] = &fnv1beta1.ResourceSelector{
 			ApiVersion: v.Request.ApiVersion,
 			Kind:       v.Request.Kind,
 		}
 		if v.Request.Labels == nil {
-			requestResult[k].Match = &fnv1beta1.ResourceSelector_MatchName{
+			result[k].Match = &fnv1beta1.ResourceSelector_MatchName{
 				MatchName: v.Request.Name,
 			}
 		} else {
-			requestResult[k].Match = &fnv1beta1.ResourceSelector_MatchLabels{
+			result[k].Match = &fnv1beta1.ResourceSelector_MatchLabels{
 				MatchLabels: &fnv1beta1.MatchLabels{
 					Labels: v.Request.Labels,
 				},
@@ -126,10 +128,11 @@ func (e *Executor) makeRequestResult(
 }
 
 func (e *Executor) Exec() (*ExecResult, error) {
-	e.log.Debug().Msg("start execution")
-
 	result := NewExecResult()
 
+	e.log.Debug().Msg("start execution")
+
+	insufficientRequestedResources := false
 	for _, file := range e.executor.GetFileNames() {
 
 		desired, desiredErrors, resourcesDeferred, request, requestsErrs, outputs, outputsErrs, inputs, inputsErrs, err :=
@@ -152,7 +155,6 @@ func (e *Executor) Exec() (*ExecResult, error) {
 			result.Inputs[k] = k
 		}
 
-		insufficientRequestedResources := false
 		for k := range request {
 			_, ok := e.cmd.Requested[k]
 			if !ok {
@@ -164,7 +166,7 @@ func (e *Executor) Exec() (*ExecResult, error) {
 			if err != nil {
 				return nil, err
 			}
-			return result, nil
+			continue
 		}
 
 		desired, desiredErrors, resourcesDeferred, request, requestsErrs, outputs, outputsErrs, inputs, inputsErrs, err =
@@ -256,6 +258,66 @@ func (e *Executor) Exec() (*ExecResult, error) {
 		}
 	}
 	return result, nil
+}
+
+func (e *Executor) writeTestData(result *ExecResult, ee error) error {
+	testPath := ""
+
+	switch e.executor.(type) {
+	case *jsonnetExecutor:
+		testPath = "pkg/executor/testdata/jsonnet/new"
+	case *cueExecutor:
+		testPath = "pkg/executor/testdata/cue/new"
+	default:
+		return errors.New("test does not support this project type")
+	}
+
+	if _, err := os.Stat(testPath); !os.IsNotExist(err) {
+		return nil
+	}
+
+	cmd, err := yaml.Marshal(e.cmd)
+	if err != nil {
+		return err
+	}
+
+	path := e.path + "/" + e.cmd.Path
+
+	if err := os.MkdirAll(testPath, os.ModePerm); err != nil {
+		return err
+	}
+	err = cp.Copy(path, testPath+"/src")
+	if err != nil {
+		return err
+	}
+	err = os.WriteFile(testPath+"/command.yaml", cmd, 0644)
+	if err != nil {
+		return err
+	}
+
+	if ee == nil {
+		res, err := yaml.Marshal(result)
+		if err != nil {
+			return err
+		}
+
+		err = os.WriteFile(testPath+"/result.yaml", res, 0644)
+		if err != nil {
+			return err
+		}
+	} else {
+		eey, err := yaml.Marshal(ee)
+		if err != nil {
+			return err
+		}
+		err = os.WriteFile(testPath+"/error.yaml", eey, 0644)
+		if err != nil {
+			return err
+		}
+	}
+
+	e.log.Info().Str("path", testPath).Msg("test data write complete")
+	return nil
 }
 
 func (e *Executor) execFile(
