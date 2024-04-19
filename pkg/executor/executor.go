@@ -44,6 +44,23 @@ func NewExecutor(cmd *ExecCommand, path string) (*Executor, error) {
 		return e, err
 	}
 
+	for _, v := range cmd.Observed {
+		if len(v.ConnectionDetails) == 0 {
+			continue
+		}
+		status, ok := v.Resource.Object["status"]
+		if !ok {
+			status = make(map[string]interface{})
+			v.Resource.Object["status"] = status
+		}
+		statusTyped := status.(map[string]interface{})
+		d := make(map[string]string)
+		for kk, vv := range v.ConnectionDetails {
+			d[kk] = string(vv)
+		}
+		statusTyped["connectionDetails"] = d
+	}
+
 	observed, requested, xr, context, err := e.marshal()
 
 	var ex genericExecutor = nil
