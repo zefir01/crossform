@@ -22,16 +22,7 @@ type RepoManager struct {
 	uses          map[string]int
 }
 
-func NewRepoManager() *RepoManager {
-	if _, err := os.Stat("./repos"); os.IsNotExist(err) {
-		err = os.Mkdir("./repos", 0755)
-		CheckIfError(err)
-	} else {
-		err = os.RemoveAll("./repos")
-		CheckIfError(err)
-		err = os.Mkdir("./repos", 0755)
-		CheckIfError(err)
-	}
+func NewRepoManager() (*RepoManager, error) {
 	r := &RepoManager{
 		repos:         map[string]*repo.Repo{},
 		ConfigUpdates: make(chan *repo.Config, 10000),
@@ -39,8 +30,27 @@ func NewRepoManager() *RepoManager {
 		log:           logger.GetLogger("RepoManager").With().Logger(),
 		uses:          make(map[string]int),
 	}
+
+	if _, err := os.Stat("./repos"); os.IsNotExist(err) {
+		err = os.Mkdir("./repos", 0755)
+		if err != nil {
+			r.log.Panic().Err(err).Msg("unable to create repos directory")
+			return nil, err
+		}
+	} else {
+		err = os.RemoveAll("./repos")
+		if err != nil {
+			r.log.Panic().Err(err).Msg("unable to remove repos directory")
+			return nil, err
+		}
+		err = os.Mkdir("./repos", 0755)
+		if err != nil {
+			r.log.Panic().Err(err).Msg("unable to create repos directory")
+			return nil, err
+		}
+	}
 	go r.worker()
-	return r
+	return r, nil
 }
 
 func (m *RepoManager) worker() {

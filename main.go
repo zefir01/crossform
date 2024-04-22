@@ -14,7 +14,9 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/dynamic/dynamicinformer"
 	"k8s.io/client-go/tools/cache"
+	"net/http"
 	"os"
+	"pkg.icikowski.pl/kubeprobes"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"time"
 )
@@ -81,7 +83,11 @@ func main() {
 	logger.InitLog()
 	log := logger.GetLogger("controller")
 
-	repoManager := RepoManager.NewRepoManager()
+	repoManager, err := RepoManager.NewRepoManager()
+	if err != nil {
+		log.Panic().Err(err).Msg("unable to start repoManager")
+		os.Exit(3)
+	}
 
 	stopper := make(chan struct{})
 	defer close(stopper)
@@ -99,6 +105,39 @@ func main() {
 	}
 	go functionStart()
 
-	<-stopper
+	live, err := kubeprobes.NewProbeFunction("live", func() error {
+		return nil
+	}, 0)
+	if err != nil {
+		log.Panic().Err(err).Msg("unable to create probe")
+		return
+	}
+	ready, err := kubeprobes.NewProbeFunction("ready", func() error {
+		return nil
+	}, 0)
+	if err != nil {
+		log.Panic().Err(err).Msg("unable to create probe")
+		return
+	}
+
+	kp, err := kubeprobes.New(
+		kubeprobes.WithLivenessProbes(live),
+		kubeprobes.WithReadinessProbes(ready),
+	)
+	if err != nil {
+		log.Panic().Err(err).Msg("unable to create probe")
+		return
+	}
+	probes := &http.Server{
+		Addr:    ":8080",
+		Handler: kp,
+	}
+	err = probes.ListenAndServe()
+	if err != nil {
+		log.Panic().Err(err).Msg("unable to create probe")
+		return
+	}
+
+	//<-stopper
 
 }

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "crossform.fullname" . }}
+  labels:
+    {{- include "crossform.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: grpc
+      protocol: TCP
+      name: grpc
+  selector:
+    {{- include "crossform.selectorLabels" . | nindent 4 }}

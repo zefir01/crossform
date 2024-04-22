@@ -49,7 +49,7 @@ func (c *Config) GetSecretData() (*AuthData, error) {
 	ns, found := os.LookupEnv("WATCH_NAMESPACE")
 	if !found {
 		log.Panic().Msg("environment variable WATCH_NAMESPACE is required")
-		os.Exit(1)
+		os.Exit(2)
 	}
 	secrets, err := clusterClient.CoreV1().Secrets(ns).List(context.TODO(), o)
 	if err != nil {

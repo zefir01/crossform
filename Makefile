@@ -3,59 +3,14 @@
 # To re-generate a bundle for another specific version without changing the standard setup, you can:
 # - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
-VERSION ?= 0.0.1
-
-# CHANNELS define the bundle channels used in the bundle.
-# Add a new line here if you would like to change its default config. (E.g CHANNELS = "candidate,fast,stable")
-# To re-generate a bundle for other specific channels without changing the standard setup, you can:
-# - use the CHANNELS as arg of the bundle target (e.g make bundle CHANNELS=candidate,fast,stable)
-# - use environment variables to overwrite this value (e.g export CHANNELS="candidate,fast,stable")
-ifneq ($(origin CHANNELS), undefined)
-BUNDLE_CHANNELS := --channels=$(CHANNELS)
-endif
-
-# DEFAULT_CHANNEL defines the default channel used in the bundle.
-# Add a new line here if you would like to change its default config. (E.g DEFAULT_CHANNEL = "stable")
-# To re-generate a bundle for any other default channel without changing the default setup, you can:
-# - use the DEFAULT_CHANNEL as arg of the bundle target (e.g make bundle DEFAULT_CHANNEL=stable)
-# - use environment variables to overwrite this value (e.g export DEFAULT_CHANNEL="stable")
-ifneq ($(origin DEFAULT_CHANNEL), undefined)
-BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
-endif
-BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
-
-# IMAGE_TAG_BASE defines the docker.io namespace and part of the image name for remote images.
-# This variable is used to construct full image tags for bundle and catalog images.
-#
-# For example, running 'make bundle-build bundle-push catalog-build catalog-push' will build and push both
-# cp-git-functions.com/operator-bundle:$VERSION and cp-git-functions.com/operator-catalog:$VERSION.
-IMAGE_TAG_BASE ?= cp-git-functions.com/operator
-
-# BUNDLE_IMG defines the image:tag used for the bundle.
-# You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
-BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
-
-# BUNDLE_GEN_FLAGS are the flags passed to the operator-sdk generate bundle command
-BUNDLE_GEN_FLAGS ?= -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
-
-# USE_IMAGE_DIGESTS defines if images are resolved via tags or digests
-# You can enable this value if you would like to use SHA Based Digests
-# To enable set flag to true
-USE_IMAGE_DIGESTS ?= false
-ifeq ($(USE_IMAGE_DIGESTS), true)
-	BUNDLE_GEN_FLAGS += --use-image-digests
-endif
-
-# Set the Operator SDK version to use. By default, what is installed on the system is used.
-# This is useful for CI or a project to utilize a specific version of the operator-sdk toolkit.
-OPERATOR_SDK_VERSION ?= v1.34.1
+VERSION ?= 0.0.7
 
 # Image URL to use all building/pushing image targets
 #IMG ?= zefir01/operator:latest
-IMG ?= 192.168.100.61:5000/operator:latest
-IMG_FUNCTION ?= zefir01/proxy-function:0.0.1
-# ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.26.0
+IMG ?= zefir01/crossform:${VERSION}
+IMG_LATEST ?= zefir01/crossform:latest
+IMG_FUNCTION ?= zefir01/proxy-function:${VERSION}
+IMG_FUNCTION_LATEST ?= zefir01/proxy-function:latest
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -112,6 +67,13 @@ vet-function: ## Run go vet against code.
 
 ##@ Build
 
+.PHONY: set-helm-version
+set-helm-version:
+	yq e ".repoServer.image.tag = \"${VERSION}\"" -P -i helm/crossform/values.yaml
+	yq e ".function.image.tag = \"${VERSION}\"" -P -i helm/crossform/values.yaml
+	yq e ".version = \"${VERSION}\"" -P -i helm/crossform/Chart.yaml
+	yq e ".appVersion = \"${VERSION}\"" -P -i helm/crossform/Chart.yaml
+
 .PHONY: build
 build: fmt vet ## Build manager binary.
 	go build -o bin/manager main.go
@@ -139,32 +101,22 @@ docker-build-dev: ## Build docker image with the manager.
 .PHONY: docker-build
 docker-build: ## Build docker image with the manager.
 	docker build -t ${IMG} -f Dockerfile .
+	docker tag ${IMG} ${IMG_LATEST}
 
 .PHONY: docker-build-function
 docker-build-function: ## Build docker image with the manager.
 	docker build -t ${IMG_FUNCTION} -f proxy-function.dockerfile .
-
-.PHONY: docker-push
-docker-push: ## Push docker image with the manager.
-	docker push ${IMG}
+	docker tag ${IMG_FUNCTION} ${IMG_FUNCTION_LATEST}
 
 .PHONY: docker-push-function
 docker-push-function: ## Push docker image with the manager.
 	crossplane xpkg push  --package-files=function-amd64.xpkg  index.docker.io/${IMG_FUNCTION}
+	crossplane xpkg push  --package-files=function-amd64.xpkg  index.docker.io/${IMG_FUNCTION_LATEST}
 
-# PLATFORMS defines the target platforms for  the manager image be build to provide support to multiple
-# architectures. (i.e. make docker-buildx IMG=myregistry/mypoperator:0.0.1). To use this option you need to:
-# - able to use docker buildx . More info: https://docs.docker.com/build/buildx/
-# - have enable BuildKit, More info: https://docs.docker.com/develop/develop-images/build_enhancements/
-# - be able to push the image for your registry (i.e. if you do not inform a valid value via IMG=<myregistry/image:<tag>> then the export will fail)
-# To properly provided solutions that supports more than one platform you should use this option.
-PLATFORMS ?= linux/arm64,linux/amd64,linux/s390x,linux/ppc64le
-.PHONY: docker-buildx
-docker-buildx: ## Build and push docker image for the manager for cross-platform support
-	# copy existing Dockerfile and insert --platform=${BUILDPLATFORM} into Dockerfile.cross, and preserve the original Dockerfile
-	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' Dockerfile > Dockerfile.cross
-	- docker buildx create --name project-v3-builder
-	docker buildx use project-v3-builder
-	- docker buildx build --push --platform=$(PLATFORMS) --tag ${IMG} -f Dockerfile.cross .
-	- docker buildx rm project-v3-builder
-	rm Dockerfile.cross
+.PHONY: docker-push
+docker-push: ## Push docker image with the manager.
+	docker push ${IMG}
+	docker push ${IMG_LATEST}
+
+.PHONY: release
+release: fmt vet vet-function docker-build-function docker-build docker-build-function set-helm-version docker-push-function docker-push

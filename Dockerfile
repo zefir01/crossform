@@ -23,10 +23,12 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o ma
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/static:nonroot
-WORKDIR /
+FROM alpine:3.19
+WORKDIR /app
 COPY --from=builder /workspace/manager .
 COPY lib.jsonnet .
+COPY lib.cue .
+RUN chown -R 65532:65532 /app
 USER 65532:65532
 
-ENTRYPOINT ["/manager"]
+ENTRYPOINT ["/app/manager"]

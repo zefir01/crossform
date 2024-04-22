@@ -1,0 +1,15 @@
+{{- if .Values.composition.install }}
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: crossform-default
+spec:
+  compositeTypeRef:
+    apiVersion: crossform.io/v1alpha1
+    kind: xModule
+  mode: Pipeline
+  pipeline:
+    - step: default
+      functionRef:
+        name: crossform-proxy
+{{- end }}

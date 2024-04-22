@@ -1,0 +1,8 @@
+{{- if .Values.function.install }}
+apiVersion: pkg.crossplane.io/v1beta1
+kind: Function
+metadata:
+  name: crossform-proxy
+spec:
+  package: {{.Values.function.image.repository}}:{{.Values.function.image.tag}}
+{{- end }}

@@ -1,0 +1,85 @@
+{{- if .Values.composition.install }}
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xmodules.crossform.io
+spec:
+  group: crossform.io
+  names:
+    kind: xModule
+    plural: xmodules
+  claimNames:
+    kind: module
+    plural: modules
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                inputs:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                repoServer:
+                  type: string
+                  default: {{ include "crossform.fullname" . }}.{{.Release.Namespace}}.svc:80
+                repository:
+                  type: string
+                revision:
+                  type: string
+                path:
+                  type: string
+              required:
+                - repository
+                - revision
+                - path
+            status:
+              type: object
+              properties:
+                hasErrors:
+                  type: boolean
+                report:
+                  type: object
+                  properties:
+                    inputsValidation:
+                      type: string
+                    inputs:
+                      type: object
+                      additionalProperties:
+                        type: string
+                    resources:
+                      type: object
+                      additionalProperties:
+                        type: string
+                    requests:
+                      type: object
+                      additionalProperties:
+                        type: string
+                    outputs:
+                      type: object
+                      additionalProperties:
+                        type: string
+                    criticalError:
+                      type: string
+                repository:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                    commitSha:
+                      type: string
+                    ok:
+                      type: boolean
+                  required:
+                    - message
+                    - commitSha
+                    - ok
+                outputs:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+{{- end }}

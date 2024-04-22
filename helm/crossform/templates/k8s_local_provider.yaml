@@ -1,0 +1,39 @@
+{{- if .Values.crossplane.installK8sLocalProvider }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: crossplane-provider-kubernetes
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: crossplane-provider-kubernetes
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: crossplane-provider-kubernetes
+    namespace: {{.Release.Namespace}}
+---
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: provider-kubernetes
+  namespace: {{.Release.Namespace}}
+spec:
+  serviceAccountTemplate:
+    metadata:
+      name: crossplane-provider-kubernetes
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-kubernetes
+  namespace: {{.Release.Namespace}}
+spec:
+  package: "index.docker.io/crossplanecontrib/provider-kubernetes:v0.12.1"
+  runtimeConfigRef:
+    name: provider-kubernetes
+{{- end }}

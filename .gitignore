@@ -24,3 +24,4 @@ repos
 manifests/secret.yaml
 bin
 function-amd64.xpkg
+/helm/crossform/Chart.lock
