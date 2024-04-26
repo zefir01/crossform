@@ -1,4 +1,5 @@
 local lib = std.extVar('crossform');
+local observed = std.extVar('observed');
 
 local providerConfig = lib.resource('providerConfig', {
   apiVersion: 'kubernetes.crossplane.io/v1alpha1',
@@ -13,6 +14,7 @@ local providerConfig = lib.resource('providerConfig', {
   },
 });
 
+local test1_observed=std.get(observed, 'test1');
 local test1 = lib.resource('test1', {
   apiVersion: 'kubernetes.crossplane.io/v1alpha2',
   kind: 'Object',
@@ -28,6 +30,16 @@ local test1 = lib.resource('test1', {
           labels: {
             example: 'true',
           },
+          [if test1_observed!=null then 'ownerReferences']: [
+            {
+              apiVersion: self.apiVersion,
+              blockOwnerDeletion: false,
+              controller: false,
+              kind: self.kind,
+              name: self.metadata.name,
+              uid: test1_observed.metadata.uid,
+            }
+          ]
         },
       },
     },
