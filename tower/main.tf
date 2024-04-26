@@ -189,7 +189,7 @@ resource "kubernetes_manifest" "deployment_config_aws" {
     spec = {
       serviceAccountTemplate = {
         metadata = {
-          name = "crossplane-provider-aws"
+          name        = "crossplane-provider-aws"
           annotations = {
             "eks.amazonaws.com/role-arn" = module.irsa_provider_aws.arn
           }
@@ -213,5 +213,22 @@ resource "kubernetes_manifest" "provider_aws" {
       }
       package = "xpkg.upbound.io/crossplane-contrib/provider-aws:v0.47.2"
     }
+  }
+}
+
+resource "kubernetes_secret_v1" "crossform_repo" {
+  depends_on = [helm_release.crossplane]
+  metadata {
+    name      = "crossform-repo"
+    namespace = "crossplane-system"
+    labels    = {
+      "crossform.io/secret-type" = "repository"
+    }
+  }
+
+  data = {
+    type          = "git"
+    repository    = "git@github.com:zefir01/crossform.git"
+    sshPrivateKey = file("argo-git")
   }
 }

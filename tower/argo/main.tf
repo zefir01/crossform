@@ -337,17 +337,6 @@ EOF
       "configs.params.server\\.insecure"                                                  = "true"
       "configs.secret.argocdServerAdminPassword"                                          = bcrypt_hash.argo_pass.id
       "server.extraArgs[0]"                                                               = "--insecure"
-      #      "server.ingress.enabled"                                                            = true
-      #      "server.ingress.hostname"                                                           = "argo.${var.domain}"
-      #      "server.ingress.ingressClassName"                                                   = "alb"
-      #      "server.ingress.annotations.alb\\.ingress\\.kubernetes\\.io/scheme"                 = "internet-facing"
-      #      "server.ingress.annotations.external-dns\\.kubernetes\\.io/enable"                  = "true"
-      #      "server.ingress.annotations.alb\\.ingress\\.kubernetes\\.io/listen-ports"           = "\\[{\"HTTPS\":443}\\]"
-      #      "server.ingress.annotations.alb\\.ingress\\.kubernetes\\.io/load-balancer-name"     = "argo"
-      #      "server.ingress.annotations.alb\\.ingress\\.kubernetes\\.io/target-type"            = "ip"
-      #      "server.ingress.https"                                                              = false
-      #      "server.ingress.tls[0].hosts[0]"                                                    = "argo.${var.domain}"
-      #      "server.ingress.tls[0].secretName"                                                  = "myingress-cert"
       "server.service.type"                                                               = "NodePort"
       "server.ingressGrpc.isAWSALB"                                                       = false
       "server.ingressGrpc.enabled"                                                        = false
@@ -473,24 +462,6 @@ Host vs-ssh.visualstudio.com
 HostkeyAlgorithms +ssh-rsa
 PubkeyAcceptedAlgorithms +ssh-rsa
 EOF
-  }
-}
-
-
-resource "kubernetes_secret_v1" "argo_repo" {
-  depends_on = [helm_release.argo-cd]
-  metadata {
-    name      = "argocd-repo"
-    namespace = "argo"
-    labels    = {
-      "argocd.argoproj.io/secret-type" = "repository"
-    }
-  }
-
-  data = {
-    type          = "git"
-    url           = var.argo_repo
-    sshPrivateKey = var.argo_ssh_key
   }
 }
 
