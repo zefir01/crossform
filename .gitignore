@@ -25,3 +25,5 @@ manifests/secret.yaml
 bin
 function-amd64.xpkg
 /helm/crossform/Chart.lock
+/tower/.terraform/
+/tower/.terraform.lock.hcl
