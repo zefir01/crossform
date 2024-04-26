@@ -7,14 +7,14 @@ repoServer:
     repository: zefir01/crossform
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 0.0.9
+    tag: 0.0.10
 crossplane:
   installK8sLocalProvider: true
 function:
   install: true
   image:
     repository: index.docker.io/zefir01/proxy-function
-    tag: 0.0.9
+    tag: 0.0.10
 composition:
   install: true
 imagePullSecrets: []
@@ -44,12 +44,11 @@ securityContext:
 # runAsUser: 1000
 resources:
   limits:
-   cpu: 100m
-   memory: 128Mi
+    cpu: 100m
+    memory: 128Mi
   requests:
-   cpu: 100m
-   memory: 128Mi
-
+    cpu: 100m
+    memory: 128Mi
 # Additional volumes on the output Deployment definition.
 volumes: []
 # - name: foo

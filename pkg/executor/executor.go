@@ -220,6 +220,17 @@ func (e *Executor) Exec() (*ExecResult, error) {
 				e.log.Error().Err(err).Str("id", k).Msg("duplicated id detected, execution fatal")
 				return nil, err
 			}
+
+			apiVersion, hasApiVersion := v.Resource.Object["apiVersion"]
+			kind, hasKind := v.Resource.Object["kind"]
+			if hasApiVersion && hasKind {
+				av := apiVersion.(string)
+				k := kind.(string)
+				if av == "kubernetes.crossplane.io/v1alpha1" && k == "ProviderConfig" {
+					v.Ready = resource.ReadyTrue
+				}
+			}
+
 			result.Desired[resource.Name(k)] = v
 		}
 
