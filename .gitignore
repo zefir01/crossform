@@ -27,3 +27,5 @@ function-amd64.xpkg
 /helm/crossform/Chart.lock
 /tower/.terraform/
 /tower/.terraform.lock.hcl
+/tower/argo-git.pub
+/tower/argo-git

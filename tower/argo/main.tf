@@ -427,7 +427,6 @@ resource "kubernetes_manifest" "argo_base" {
               }
             ]
           }
-          recurse = false
         }
         path           = "examples/argo-base"
         repoURL        = var.argo_repo

@@ -11,7 +11,7 @@ local revision = std.extVar('revision');
     spec: {
       repository: 'git@github.com:zefir01/test2.git',
       revision: 'main',
-      path: 'project1',
+      path: 'test2',
     },
   }
 ]

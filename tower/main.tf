@@ -3,22 +3,22 @@ locals {
   domain = "tower.crossform.io"
 }
 
-resource "aws_iam_policy" "additional" {
-  name = "${local.name}-additional"
-
-  policy = jsonencode({
-    Version   = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "ec2:Describe*",
-        ]
-        Effect   = "Allow"
-        Resource = "*"
-      },
-    ]
-  })
-}
+#resource "aws_iam_policy" "additional" {
+#  name = "${local.name}-additional"
+#
+#  policy = jsonencode({
+#    Version   = "2012-10-17"
+#    Statement = [
+#      {
+#        Action = [
+#          "ec2:Describe*",
+#        ]
+#        Effect   = "Allow"
+#        Resource = "*"
+#      },
+#    ]
+#  })
+#}
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
@@ -39,11 +39,11 @@ module "eks" {
   # available under https://docs.aws.amazon.com/eks/latest/userguide/fargate-getting-started.html
 
 
-  fargate_profile_defaults = {
-    iam_role_additional_policies = {
-      additional = aws_iam_policy.additional.arn
-    }
-  }
+  #  fargate_profile_defaults = {
+  #    iam_role_additional_policies = {
+  #      additional = aws_iam_policy.additional.arn
+  #    }
+  #  }
 
   fargate_profiles = {
     default = {
@@ -120,8 +120,8 @@ resource "helm_release" "external_dns" {
       "triggerLoopOnEvent" : "true"
       "extraArgs.annotation-filter=external-dns.kubernetes.io/enable" : "true"
       "logLevel" : "debug"
-      "interval": "10m"
-      "triggerLoopOnEvent": "true"
+      "interval" : "10m"
+      "triggerLoopOnEvent" : "true"
     }
     content {
       name  = set.key
@@ -139,5 +139,79 @@ module "argo" {
   oidc_url     = module.eks.cluster_oidc_issuer_url
   oidc_arn     = module.eks.oidc_provider_arn
   argo_branch  = "main"
-  argo_ssh_key = ""
+  argo_ssh_key = file("argo-git")
+}
+
+resource "helm_release" "crossplane" {
+  name             = "crossplane"
+  chart            = "crossplane"
+  version          = "1.15.2"
+  repository       = "https://charts.crossplane.io/stable"
+  namespace        = "crossplane-system"
+  create_namespace = true
+  cleanup_on_fail  = true
+  values           = [
+    <<EOF
+args:
+  - --enable-environment-configs=true
+  - --enable-composition-functions-extra-resources=true
+  - --enable-ssa-claims
+registry: index.docker.io
+EOF
+  ]
+}
+
+resource "helm_release" "crossform" {
+  depends_on = [helm_release.crossplane]
+  name       = "crossform"
+  chart      = "../helm/crossform"
+}
+
+module "irsa_provider_aws" {
+  source         = "./irsa"
+  name           = "crossplane"
+  cluster_name   = module.eks.cluster_name
+  namespace      = "crossplane-system"
+  serviceaccount = "crossplane-provider-aws"
+  oidc_url       = module.eks.cluster_oidc_issuer_url
+  oidc_arn       = module.eks.oidc_provider_arn
+  policy_arns    = ["arn:aws:iam::aws:policy/AdministratorAccess"]
+}
+
+resource "kubernetes_manifest" "deployment_config_aws" {
+  depends_on = [helm_release.crossplane]
+  manifest   = {
+    apiVersion = "pkg.crossplane.io/v1beta1"
+    kind       = "DeploymentRuntimeConfig"
+    metadata   = {
+      name = "provider-aws"
+    }
+    spec = {
+      serviceAccountTemplate = {
+        metadata = {
+          name = "crossplane-provider-aws"
+          annotations = {
+            "eks.amazonaws.com/role-arn" = module.irsa_provider_aws.arn
+          }
+        }
+      }
+    }
+  }
+}
+
+resource "kubernetes_manifest" "provider_aws" {
+  depends_on = [kubernetes_manifest.deployment_config_aws]
+  manifest   = {
+    apiVersion = "pkg.crossplane.io/v1"
+    kind       = "Provider"
+    metadata   = {
+      name = "provider-aws"
+    }
+    spec = {
+      runtimeConfigRef = {
+        name = "provider-aws"
+      }
+      package = "xpkg.upbound.io/crossplane-contrib/provider-aws:v0.47.2"
+    }
+  }
 }
