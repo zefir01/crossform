@@ -418,9 +418,13 @@ resource "kubernetes_manifest" "argo_base" {
           jsonnet = {
             extVars = [
               {
-                name  = "config"
-                value = "{}"
+                name  = "repo_url"
+                value = var.argo_repo
               },
+              {
+                name  = "revision",
+                value = var.argo_branch
+              }
             ]
           }
           recurse = false
