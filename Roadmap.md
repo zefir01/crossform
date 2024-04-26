@@ -1,9 +1,10 @@
 ## Tasks
 
-- k8s provider permissions
-  https://github.com/crossplane-contrib/provider-kubernetes
 
-- create function pod restart issue
-- test wrong path
+- providerConfig auto ready
+- optional input validation 
+- argo health scripts
+- eks deployment example
+- dependencies detector
 - local debug runner?
 - diff operator
