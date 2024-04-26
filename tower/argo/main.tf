@@ -215,120 +215,215 @@ configs:
             - name: ${o.org}
 %{ endfor }
 %{ endif }
-    resource.customizations.ignoreDifferences.datadoghq.com_DatadogMonitor: |
-      jsonPointers:
-        - /spec/tags
-    resource.customizations.health.datadoghq.com_DatadogMonitor: |
-      hs = {}
-      conditionActive={}
-      conditionCreated={}
-      conditionError={}
-      for i, condition in ipairs(obj.status.conditions) do
-        if condition.type == "Created" and condition.status == "True" then
-          conditionCreated=condition
-        end
-        if condition.type == "Active" and condition.status == "True" then
-          conditionActive=condition
-        end
-         if condition.type == "Error" and condition.status == "True" then
-          conditionError=condition
-        end
-      end
-      if conditionCreated.status == "True" then
-          hs.status = "Progressing"
-          hs.message = conditionCreated.message
-      end
-      if conditionActive.status == "True" then
-          hs.status = "Healthy"
-          hs.message = conditionActive.message
-      end
-      if conditionError.status == "True" then
-          hs.status = "Degraded"
-          hs.message = conditionError.message
-      end
-      return hs
+    resource.exclusions: |
+      - apiGroups:
+        - "*"
+        kinds:
+        - ProviderConfigUsage
+    resource.customizations: |
+      "*.upbound.io/*":
+        health.lua: |
+          health_status = {
+            status = "Progressing",
+            message = "Provisioning ..."
+          }
 
-    resource.customizations.health.atlas.mongodb.com_AtlasDatabaseUser: |
-      hs = {}
-      hs.status = "Progressing"
-      hs.message="Unknown"
-      conditionReady={}
-      conditionValidationSucceeded={}
-      conditionDatabaseUserReady={}
-      error=false
-
-      for i, condition in ipairs(obj.status.conditions) do
-        if condition.type == "Ready" and condition.status == "True" then
-          conditionReady=condition
-        end
-        if condition.type == "ValidationSucceeded" and condition.status == "True" then
-          conditionValidationSucceeded=condition
-        end
-         if condition.type == "DatabaseUserReady" and condition.status == "True" then
-          conditionDatabaseUserReady=condition
-        end
-      end
-
-      if conditionReady.status == "True" then
-          hs.status = "Healthy"
-          if conditionReady.message ~=nil then
-              hs.message = conditionReady.message
-              error=false
-          else
-              hs.message="Ready"
+          local function contains (table, val)
+            for i, v in ipairs(table) do
+              if v == val then
+                return true
+              end
+            end
+            return false
           end
-      end
-      if conditionValidationSucceeded.status == "False" then
-          hs.status = "Degraded"
-          if conditionValidationSucceeded.message ~=nil then
-              hs.message = conditionValidationSucceeded.message
-              error=true
-          else
-              hs.message="Validation failed"
-          end
-      end
-      if conditionDatabaseUserReady.status == "False" then
-          hs.status = "Progressing"
-          if conditionDatabaseUserReady.message ~=nil then
-              hs.message = conditionDatabaseUserReady.message
-              error=false
-          else
-              hs.message="Database user not ready"
-          end
-      end
-      return hs
 
-    resource.customizations.health.app.terraform.io_Workspace: |
-      hs = {}
-      if obj.status ==nil or obj.status.runStatus ==nil then
-        hs.message="Waiting operator"
-        hs.status = "Progressing"
-        return hs
-      end
+          local has_no_status = {
+            "ProviderConfig",
+            "ProviderConfigUsage"
+          }
 
-      local statuses = {
-        ["pending"]="Progressing",
-        ["plan_queued"]="Progressing",
-        ["planning"]="Progressing",
-        ["planned"]="Progressing",
-        ["confirmed"]="Progressing",
-        ["apply_queued"]="Progressing",
-        ["applying"]="Progressing",
-        ["applied"]="Healthy",
-        ["discarded"]="Degraded",
-        ["errored"]="Degraded",
-        ["canceled"]="Degraded",
-        ["cost_estimating"]="Progressing",
-        ["cost_estimated"]="Progressing",
-        ["policy_checking"]="Progressing",
-        ["policy_override"]="Progressing",
-        ["policy_soft_failed"]="Degraded",
-        ["policy_checked"]="Progressing",
-        ["planned_and_finished"]="Healthy"
-      }
-      hs.status = statuses[obj.status.runStatus]
-      hs.message=obj.status.runStatus
-      return hs
+          if obj.status == nil or next(obj.status) == nil and contains(has_no_status, obj.kind) then
+            health_status.status = "Healthy"
+            health_status.message = "Resource is up-to-date."
+            return health_status
+          end
+
+          if obj.status == nil or next(obj.status) == nil or obj.status.conditions == nil then
+            if obj.kind == "ProviderConfig" and obj.status.users ~= nil then
+              health_status.status = "Healthy"
+              health_status.message = "Resource is in use."
+              return health_status
+            end
+            return health_status
+          end
+
+          for i, condition in ipairs(obj.status.conditions) do
+            if condition.type == "LastAsyncOperation" then
+              if condition.status == "False" then
+                health_status.status = "Degraded"
+                health_status.message = condition.message
+                return health_status
+              end
+            end
+
+            if condition.type == "Synced" then
+              if condition.status == "False" then
+                health_status.status = "Degraded"
+                health_status.message = condition.message
+                return health_status
+              end
+            end
+
+            if condition.type == "Ready" then
+              if condition.status == "True" then
+                health_status.status = "Healthy"
+                health_status.message = "Resource is up-to-date."
+                return health_status
+              end
+            end
+          end
+
+          return health_status
+
+      "*.crossplane.io/*":
+        health.lua: |
+          health_status = {
+            status = "Progressing",
+            message = "Provisioning ..."
+          }
+
+          local function contains (table, val)
+            for i, v in ipairs(table) do
+              if v == val then
+                return true
+              end
+            end
+            return false
+          end
+
+          local has_no_status = {
+            "Composition",
+            "CompositionRevision",
+            "DeploymentRuntimeConfig",
+            "ControllerConfig",
+            "ProviderConfig",
+            "ProviderConfigUsage"
+          }
+          if obj.status == nil or next(obj.status) == nil and contains(has_no_status, obj.kind) then
+              health_status.status = "Healthy"
+              health_status.message = "Resource is up-to-date."
+            return health_status
+          end
+
+          if obj.status == nil or next(obj.status) == nil or obj.status.conditions == nil then
+            if obj.kind == "ProviderConfig" and obj.status.users ~= nil then
+              health_status.status = "Healthy"
+              health_status.message = "Resource is in use."
+              return health_status
+            end
+            return health_status
+          end
+
+          for i, condition in ipairs(obj.status.conditions) do
+            if condition.type == "LastAsyncOperation" then
+              if condition.status == "False" then
+                health_status.status = "Degraded"
+                health_status.message = condition.message
+                return health_status
+              end
+            end
+
+            if condition.type == "Synced" then
+              if condition.status == "False" then
+                health_status.status = "Degraded"
+                health_status.message = condition.message
+                return health_status
+              end
+            end
+
+            if contains({"Ready", "Healthy", "Offered", "Established"}, condition.type) then
+              if condition.status == "True" then
+                health_status.status = "Healthy"
+                health_status.message = "Resource is up-to-date."
+                return health_status
+              end
+            end
+          end
+
+          return health_status
+
+      "crossform.io/xModule":
+        health.lua: |
+          local health_status = {
+              status = "Progressing",
+              message = "Provisioning ..."
+          }
+          local ready = false
+
+          if obj.status.repository.ok == false then
+              health_status.status = "Degraded"
+              health_status.message = obj.status.repository.message
+              return health_status
+          end
+
+          for i, condition in ipairs(obj.status.conditions) do
+              if condition.type == "LastAsyncOperation" then
+                  if condition.status == "False" then
+                      health_status.status = "Degraded"
+                      health_status.message = condition.message
+                      return health_status
+                  end
+              end
+
+              if condition.type == "Synced" then
+                  if condition.status == "False" then
+                      health_status.status = "Degraded"
+                      health_status.message = condition.message
+                      return health_status
+                  end
+              end
+
+              if condition.type == "Ready" then
+                  if condition.status == "True" then
+                      ready = true
+                  end
+              end
+          end
+
+          if ready == false then
+              return health_status
+          end
+
+          if obj.hasErrors == false then
+              return health_status
+          end
+
+          local errors = ""
+          for k, v in pairs(obj.status.report) do
+              if k == "inputsValidation" then
+                  if v ~= "OK" then
+                      health_status.status = "Degraded"
+                      health_status.message = v
+                      return health_status
+                  end
+              else
+                  for kk, vv in pairs(v) do
+                      if vv ~= "OK" then
+                          errors = errors .. k .. "." .. kk .. ":" .. vv .. "\n"
+                      end
+                  end
+              end
+          end
+
+          if errors ~= "" then
+              health_status.status = "Degraded"
+              health_status.message = errors
+              return health_status
+          end
+
+          health_status.status = "Healthy"
+          health_status.message = "Resource is up-to-date."
+          return health_status
 EOF
   ]
 

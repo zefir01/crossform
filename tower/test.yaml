@@ -1,0 +1,65 @@
+apiVersion: crossform.io/v1alpha1
+kind: xModule
+metadata:
+  annotations:
+    argocd.argoproj.io/tracking-id: 'argo-base:crossform.io/xModule:argo/test1'
+  creationTimestamp: '2024-04-26T05:21:37Z'
+  finalizers:
+    - composite.apiextensions.crossplane.io
+  generation: 6
+  labels:
+    crossplane.io/composite: test1
+  name: test1
+  resourceVersion: '1205551'
+  uid: d9cf9421-a04f-4736-b5f0-19be1f466765
+spec:
+  compositionRef:
+    name: crossform-default
+  compositionRevisionRef:
+    name: crossform-default-df45d68
+  compositionUpdatePolicy: Automatic
+  inputs:
+    test1: aaa
+  path: examples/test2
+  repoServer: 'crossform.crossplane-system.svc:80'
+  repository: 'git@github.com:zefir01/crossform.git'
+  resourceRefs:
+    - apiVersion: kubernetes.crossplane.io/v1alpha1
+      kind: ProviderConfig
+      name: kubernetes-local
+    - apiVersion: kubernetes.crossplane.io/v1alpha2
+      kind: Object
+      name: sample-namespace
+    - apiVersion: kubernetes.crossplane.io/v1alpha2
+      kind: Object
+      name: sample-namespace-v1
+  revision: main
+status:
+  conditions:
+    - lastTransitionTime: '2024-04-26T19:38:44Z'
+      reason: ReconcileSuccess
+      status: 'True'
+      type: Synced
+    - lastTransitionTime: '2024-04-26T19:38:44Z'
+      reason: Available
+      status: 'True'
+      type: Ready
+  hasErrors: true
+  outputs:
+    test1: aaa
+  report:
+    inputs:
+      test1: OK
+    inputsValidation: OK
+    outputs:
+      test1: OK
+    requests:
+      test-request1: OK
+    resources:
+      providerConfig: ERR
+      test1: OK
+      test2: OK
+  repository:
+    commitSha: abcd7b7cffbbc045ed5e08b7dc5de977f86453f3
+    message: No updates
+    ok: true
