@@ -11,7 +11,7 @@ local revision = std.extVar('revision');
     spec: {
       repository: repo_url,
       revision: revision,
-      path: 'test2',
+      path: 'examples/test2',
     },
   }
 ]

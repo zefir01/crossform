@@ -579,3 +579,20 @@ resource "null_resource" "patch_default_project" {
     interpreter = ["/bin/bash", "-c"]
   }
 }
+
+resource "kubernetes_secret_v1" "argo_repo" {
+  depends_on = [helm_release.argo-cd]
+  metadata {
+    name      = "argocd-repo"
+    namespace = "argo"
+    labels    = {
+      "argocd.argoproj.io/secret-type" = "repository"
+    }
+  }
+
+  data = {
+    type          = "git"
+    url           = var.argo_repo
+    sshPrivateKey = var.argo_ssh_key
+  }
+}

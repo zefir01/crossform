@@ -165,6 +165,7 @@ resource "helm_release" "crossform" {
   depends_on = [helm_release.crossplane]
   name       = "crossform"
   chart      = "../helm/crossform"
+  namespace  = "crossplane-system"
 }
 
 module "irsa_provider_aws" {
