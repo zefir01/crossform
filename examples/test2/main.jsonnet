@@ -30,7 +30,7 @@ local test1 = lib.resource('test1', {
           labels: {
             example: 'true',
           },
-          [if std.objectHas(super.metadata, 'uid') then 'ownerReferences']: [
+          [if std.objectHas(super, 'metadata') then 'ownerReferences']: [
             {
               apiVersion: $.apiVersion,
               blockOwnerDeletion: false,
