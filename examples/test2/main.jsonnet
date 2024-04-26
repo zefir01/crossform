@@ -32,11 +32,11 @@ local test1 = lib.resource('test1', {
           },
           [if test1_observed!=null then 'ownerReferences']: [
             {
-              apiVersion: self.apiVersion,
+              apiVersion: $.apiVersion,
               blockOwnerDeletion: false,
               controller: false,
-              kind: self.kind,
-              name: self.metadata.name,
+              kind: $.kind,
+              name: $.metadata.name,
               uid: test1_observed.metadata.uid,
             }
           ]
