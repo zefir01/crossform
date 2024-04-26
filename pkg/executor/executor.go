@@ -159,17 +159,19 @@ func (e *Executor) Exec() (*ExecResult, error) {
 		}
 
 		xrSpec := e.cmd.XR.Resource.Object["spec"]
-		xrInputs := xrSpec.(map[string]interface{})["inputs"]
-		if err := e.executor.ValidateInputs(inputs, xrInputs.(map[string]interface{})); err != nil {
-			e.log.Error().Err(err).Msg("Inputs schema validation error")
-			result.InputsValidationError = err
-		}
+		xrInputs, hasInputs := xrSpec.(map[string]interface{})["inputs"]
+		if hasInputs {
+			if err := e.executor.ValidateInputs(inputs, xrInputs.(map[string]interface{})); err != nil {
+				e.log.Error().Err(err).Msg("Inputs schema validation error")
+				result.InputsValidationError = err
+			}
 
-		for k, v := range inputsErrs {
-			result.InputsErrors[k] = v
-		}
-		for k := range inputs {
-			result.Inputs[k] = k
+			for k, v := range inputsErrs {
+				result.InputsErrors[k] = v
+			}
+			for k := range inputs {
+				result.Inputs[k] = k
+			}
 		}
 
 		for k := range request {

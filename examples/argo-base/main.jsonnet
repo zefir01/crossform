@@ -12,6 +12,9 @@ local revision = std.extVar('revision');
       repository: repo_url,
       revision: revision,
       path: 'examples/test2',
+      inputs: {
+        test1: 'aaa',
+      },
     },
-  }
+  },
 ]
