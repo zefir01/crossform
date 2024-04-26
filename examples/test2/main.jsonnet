@@ -37,7 +37,7 @@ local test1 = lib.resource('test1', {
               controller: false,
               kind: $.kind,
               name: $.metadata.name,
-              uid: test1_observed.metadata.uid,
+              uid: $.metadata.uid,
             }
           ]
         },
