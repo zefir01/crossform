@@ -33,37 +33,12 @@ local awsProviderConfig = lib.resource('providerConfigAws', {
   },
 };
 
-local test1_observed = std.get(observed, 'test1');
-local test1 = lib.resource('test1', {
-  apiVersion: 'kubernetes.crossplane.io/v1alpha2',
-  kind: 'Object',
+local test1 =  k8s.object('test1', {
+  apiVersion: 'v1',
+  kind: 'Namespace',
   metadata: {
-    name: 'sample-namespace',
-  },
-  spec: {
-    forProvider: {
-      manifest: {
-        apiVersion: 'v1',
-        kind: 'Namespace',
-        metadata: {
-          labels: {
-            example: 'true',
-          },
-          [if test1_observed!=null then 'ownerReferences']: [
-            {
-              apiVersion: $.apiVersion,
-              blockOwnerDeletion: false,
-              controller: false,
-              kind: $.kind,
-              name: $.metadata.name,
-              uid: test1_observed.metadata.uid,
-            },
-          ],
-        },
-      },
-    },
-    providerConfigRef: {
-      name: k8sProviderConfig.metadata.name,
+    labels: {
+      example: 'true',
     },
   },
 });
