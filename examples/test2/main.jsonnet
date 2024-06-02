@@ -27,7 +27,11 @@ local awsProviderConfig = lib.resource('providerConfigAws', {
       source: 'InjectedIdentity',
     },
   },
-});
+})+{
+  crossform:: {
+    ready: true,
+  },
+};
 
 local test1_observed = std.get(observed, 'test1');
 local test1 = lib.resource('test1', {
