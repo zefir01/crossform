@@ -28,7 +28,7 @@ local awsProviderConfig = lib.resource('providerConfigAws', {
     },
   },
 })+{
-  crossform:: {
+  crossform+:: {
     ready: true,
   },
 };

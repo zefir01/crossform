@@ -11,7 +11,7 @@ local getObserved(id) = std.get(observed, id, {});
   providerConfig: null,
   withProviderConfig(name):: ${ providerConfig: name },
 
-  object(id, name, obj):: lib.resource(id, {
+  object(id, obj):: lib.resource(id, {
     apiVersion: 'kubernetes.crossplane.io/v1alpha2',
     kind: 'Object',
     spec: {
