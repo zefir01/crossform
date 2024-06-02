@@ -14,7 +14,9 @@ local k8sProviderConfig = lib.resource('providerConfig', {
   },
 });
 
-local awsProviderConfig=lib.resource('providerConfigAws', {
+local k8s = (import '../libs/k8s.libsonnet').withProviderConfig(k8sProviderConfig.metadata.name);
+
+local awsProviderConfig = lib.resource('providerConfigAws', {
   apiVersion: 'aws.crossplane.io/v1beta1',
   kind: 'ProviderConfig',
   metadata: {
@@ -27,7 +29,7 @@ local awsProviderConfig=lib.resource('providerConfigAws', {
   },
 });
 
-local test1_observed=std.get(observed, 'test1');
+local test1_observed = std.get(observed, 'test1');
 local test1 = lib.resource('test1', {
   apiVersion: 'kubernetes.crossplane.io/v1alpha2',
   kind: 'Object',
@@ -51,8 +53,8 @@ local test1 = lib.resource('test1', {
               kind: $.kind,
               name: $.metadata.name,
               uid: test1_observed.metadata.uid,
-            }
-          ]
+            },
+          ],
         },
       },
     },
@@ -64,30 +66,17 @@ local test1 = lib.resource('test1', {
 
 local request1 = lib.request('test-request1', 'crossform.io/v1alpha1', 'xmodule', 'example-claim-p8nzs');
 
-local test2 = lib.resource('test2', {
-  apiVersion: 'kubernetes.crossplane.io/v1alpha2',
-  kind: 'Object',
+local test2 = k8s.object('test2', {
+  apiVersion: 'v1',
+  kind: 'Namespace',
   metadata: {
-    name: 'sample-namespace-'+test1.status.atProvider.manifest.apiVersion,
-  },
-  spec: {
-    forProvider: {
-      manifest: {
-        apiVersion: 'v1',
-        kind: 'Namespace',
-        metadata: {
-          labels: {
-            example: 'true',
-            //test1: request1.result.spec.claimRef.kind
-          },
-        },
-      },
-    },
-    providerConfigRef: {
-      name: k8sProviderConfig.metadata.name,
+    labels: {
+      example: 'true',
+      //test1: request1.result.spec.claimRef.kind
     },
   },
-});
+}
+);
 
 local xr = lib.resource('xr1', std.extVar('xr'));
 local input1 = lib.input('test1', 'string');
@@ -172,5 +161,5 @@ local rdsSecret = lib.resource('rdsSecret', {
   input1: input1,
   awsProviderConfig: awsProviderConfig,
   rdsSecret: rdsSecret,
-  rds: rds
+  rds: rds,
 }
