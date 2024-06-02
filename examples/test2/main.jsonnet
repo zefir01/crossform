@@ -14,7 +14,7 @@ local providerConfig = lib.resource('providerConfig', {
   },
 });
 
-
+local test1_observed=std.get(observed, 'test1');
 local test1 = lib.resource('test1', {
   apiVersion: 'kubernetes.crossplane.io/v1alpha2',
   kind: 'Object',
@@ -30,14 +30,14 @@ local test1 = lib.resource('test1', {
           labels: {
             example: 'true',
           },
-          [if std.objectHas(super, 'metadata') then 'ownerReferences']: [
+          [if test1_observed!=null then 'ownerReferences']: [
             {
               apiVersion: $.apiVersion,
               blockOwnerDeletion: false,
               controller: false,
               kind: $.kind,
               name: $.metadata.name,
-              uid: super.metadata.uid,
+              uid: test1_observed.metadata.uid,
             }
           ]
         },
