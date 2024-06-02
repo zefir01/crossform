@@ -144,7 +144,7 @@ local rdsSecret = lib.resource('rdsSecret', {
       },
     },
     providerConfigRef: {
-      name: 'kubernetes-provider',
+      name: providerConfig.metadata.name,
     },
   },
 }
