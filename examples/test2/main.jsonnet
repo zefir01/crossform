@@ -1,11 +1,24 @@
 local lib = std.extVar('crossform');
 local observed = std.extVar('observed');
 
-local providerConfig = lib.resource('providerConfig', {
+local k8sProviderConfig = lib.resource('providerConfig', {
   apiVersion: 'kubernetes.crossplane.io/v1alpha1',
   kind: 'ProviderConfig',
   metadata: {
     name: 'kubernetes-local',
+  },
+  spec: {
+    credentials: {
+      source: 'InjectedIdentity',
+    },
+  },
+});
+
+local awsProviderConfig=lib.resource('providerConfigAws', {
+  apiVersion: 'aws.crossplane.io/v1beta1',
+  kind: 'ProviderConfig',
+  metadata: {
+    name: 'default',
   },
   spec: {
     credentials: {
@@ -44,7 +57,7 @@ local test1 = lib.resource('test1', {
       },
     },
     providerConfigRef: {
-      name: providerConfig.metadata.name,
+      name: k8sProviderConfig.metadata.name,
     },
   },
 });
@@ -71,7 +84,7 @@ local test2 = lib.resource('test2', {
       },
     },
     providerConfigRef: {
-      name: providerConfig.metadata.name,
+      name: k8sProviderConfig.metadata.name,
     },
   },
 });
@@ -144,19 +157,20 @@ local rdsSecret = lib.resource('rdsSecret', {
       },
     },
     providerConfigRef: {
-      name: providerConfig.metadata.name,
+      name: k8sProviderConfig.metadata.name,
     },
   },
 }
 );
 
 {
-  providerConfig: providerConfig,
+  providerConfig: k8sProviderConfig,
   test1: test1,
   test2: test2,
   request1: request1,
   output1: lib.output('test1', input1.value),
   input1: input1,
+  awsProviderConfig: awsProviderConfig,
   rdsSecret: rdsSecret,
   rds: rds
 }
