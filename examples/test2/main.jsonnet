@@ -103,30 +103,16 @@ local rds = lib.resource('rds1', {
   },
 });
 
-local rdsSecret = lib.resource('rdsSecret', {
-  apiVersion: 'kubernetes.crossplane.io/v1alpha2',
-  kind: 'Object',
+local rdsSecret = k8s.object('rdsSecret', {
+  apiVersion: 'v1',
+  kind: 'Secret',
   metadata: {
-    name: 'rds-secret',
+    name: 'example-dbinstance',
+    namespace: 'crossplane-system',
   },
-  spec: {
-    forProvider: {
-      manifest: {
-        apiVersion: 'v1',
-        kind: 'Secret',
-        metadata: {
-          name: 'example-dbinstance',
-          namespace: 'crossplane-system',
-        },
-        type: 'Opaque',
-        data: {
-          password: 'dGVzdFBhc3N3b3JkITEyMw==',
-        },
-      },
-    },
-    providerConfigRef: {
-      name: k8sProviderConfig.metadata.name,
-    },
+  type: 'Opaque',
+  data: {
+    password: 'dGVzdFBhc3N3b3JkITEyMw==',
   },
 }
 );
