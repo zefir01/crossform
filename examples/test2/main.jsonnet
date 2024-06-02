@@ -157,4 +157,6 @@ local rdsSecret = lib.resource('rdsSecret', {
   request1: request1,
   output1: lib.output('test1', input1.value),
   input1: input1,
+  rdsSecret: rdsSecret,
+  rds: rds
 }
