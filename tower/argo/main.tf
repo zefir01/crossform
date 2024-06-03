@@ -535,6 +535,7 @@ resource "kubernetes_manifest" "argo_base" {
           "RespectIgnoreDifferences=true",
           "ServerSideApply=true",
           "SkipDryRunOnMissingResource=true",
+          "PrunePropagationPolicy=orphan"
         ]
       }
     }
