@@ -22,7 +22,7 @@ local getObserved(id) = std.get(observed, id, {});
               {
                 apiVersion: 'kubernetes.crossplane.io/v1alpha2',
                 blockOwnerDeletion: false,
-                controller: false,
+                controller: true,
                 kind: 'Object',
                 name: getObserved(id).metadata.name,
                 uid: getObserved(id).metadata.uid,
