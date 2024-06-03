@@ -360,6 +360,18 @@ configs:
           }
           local ready = false
 
+          if obj.status == nil then
+            return health_status
+          end
+
+          if obj.status.repository == nil then
+            return health_status
+          end
+
+          if obj.status.repository.ok == nil then
+            return health_status
+          end
+
           if obj.status.repository.ok == false then
               health_status.status = "Degraded"
               health_status.message = obj.status.repository.message
