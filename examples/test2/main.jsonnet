@@ -103,7 +103,7 @@ local rds = lib.resource('rds1', {
   },
 });
 
-local rdsSecret = k8s.object('rdsSecret', {
+local rdsSecret = k8s.object('rds-secret', {
   apiVersion: 'v1',
   kind: 'Secret',
   metadata: {
