@@ -7,7 +7,7 @@ local k8sProviderConfig = lib.resource('providerConfig', {
   metadata: {
     name: 'kubernetes-local',
     annotations: {
-      'argocd.argoproj.io/sync-wave': 5,
+      'argocd.argoproj.io/sync-wave': '5',
     },
   },
   spec: {
@@ -25,7 +25,7 @@ local awsProviderConfig = lib.resource('providerConfigAws', {
   metadata: {
     name: 'default',
     annotations: {
-      'argocd.argoproj.io/sync-wave': 5,
+      'argocd.argoproj.io/sync-wave': '5',
     },
   },
   spec: {
@@ -73,7 +73,7 @@ local rds = lib.resource('rds1', {
   metadata: {
     name: 'rds1',
     annotations: {
-      'argocd.argoproj.io/sync-wave': 20,
+      'argocd.argoproj.io/sync-wave': '20',
     },
   },
   spec: {
