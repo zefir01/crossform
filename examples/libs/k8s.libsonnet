@@ -32,7 +32,9 @@ local getObserved(id) = std.get(observed, id, {});
         }
         ),
       },
-      [if $.providerConfig!=null then 'providerConfigRef']: $.providerConfig,
+      [if $.providerConfig!=null then 'providerConfigRef']: {
+        name: $.providerConfig,
+      },
     },
   }),
 }
