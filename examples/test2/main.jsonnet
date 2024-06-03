@@ -6,6 +6,9 @@ local k8sProviderConfig = lib.resource('providerConfig', {
   kind: 'ProviderConfig',
   metadata: {
     name: 'kubernetes-local',
+    annotations: {
+      'argocd.argoproj.io/sync-wave': 5,
+    },
   },
   spec: {
     credentials: {
@@ -21,6 +24,9 @@ local awsProviderConfig = lib.resource('providerConfigAws', {
   kind: 'ProviderConfig',
   metadata: {
     name: 'default',
+    annotations: {
+      'argocd.argoproj.io/sync-wave': 5,
+    },
   },
   spec: {
     credentials: {
