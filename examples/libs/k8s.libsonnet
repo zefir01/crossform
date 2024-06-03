@@ -23,7 +23,7 @@ local getObserved(id) = std.get(observed, id, {});
     },
     spec: {
       forProvider: {
-        manifest: if getObserved(id)=={} then obj else std.mergePatch(obj, {
+        manifest: (if getObserved(id)=={} then obj else std.mergePatch(obj, {
           metadata: {
             ownerReferences: [
               {
@@ -37,7 +37,13 @@ local getObserved(id) = std.get(observed, id, {});
             ],
           },
         }
-        ),
+        ))+{
+          metadata+: {
+            annotations+: {
+              'argocd.argoproj.io/sync-options': 'Prune=false',
+            },
+          },
+        },
       },
       [if $.providerConfig!=null then 'providerConfigRef']: {
         name: $.providerConfig,
