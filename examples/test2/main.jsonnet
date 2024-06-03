@@ -135,5 +135,5 @@ local rdsSecret = k8s.object('rds-secret', {
   input1: input1,
   awsProviderConfig: awsProviderConfig,
   rdsSecret: rdsSecret,
-  rds: rds,
+  //rds: rds,
 }
