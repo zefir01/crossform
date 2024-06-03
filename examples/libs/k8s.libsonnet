@@ -11,9 +11,12 @@ local getObserved(id) = std.get(observed, id, {});
   providerConfig: null,
   withProviderConfig(name):: ${ providerConfig: name },
 
-  object(id, obj):: lib.resource(id, {
+  object(id, obj, name=id):: lib.resource(id, {
     apiVersion: 'kubernetes.crossplane.io/v1alpha2',
     kind: 'Object',
+    [if name!=null then 'metadata']: {
+      name: name,
+    },
     spec: {
       forProvider: {
         manifest: if getObserved(id)=={} then obj else std.mergePatch(obj, {
