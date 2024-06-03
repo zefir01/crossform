@@ -16,9 +16,10 @@ local getObserved(id) = std.get(observed, id, {});
     kind: 'Object',
     [if name!=null || wave!=null then 'metadata']: {
       name: name,
-      [if wave != null then 'annotations']: {
-        'argocd.argoproj.io/sync-wave': std.toString(wave),
-      }
+      annotations: {
+        [if wave != null then 'argocd.argoproj.io/sync-wave']: std.toString(wave),
+        'argocd.argoproj.io/sync-options': 'Prune=false',
+      },
     },
     spec: {
       forProvider: {
