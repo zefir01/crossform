@@ -22,7 +22,7 @@ local revision = std.extVar('revision');
     apiVersion: 'v1',
     kind: 'Namespace',
     metadata: {
-      name: 'test1',
+      name: 'testttt',
     },
   }
 ]
