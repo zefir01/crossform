@@ -7,7 +7,6 @@ local k8sProviderConfig = lib.resource('providerConfig', {
   metadata: {
     name: 'kubernetes-local',
     annotations: {
-      'argocd.argoproj.io/sync-wave': '5',
       'argocd.argoproj.io/sync-options': 'Prune=false,Delete=false',
     },
   },
@@ -26,7 +25,6 @@ local awsProviderConfig = lib.resource('providerConfigAws', {
   metadata: {
     name: 'default',
     annotations: {
-      'argocd.argoproj.io/sync-wave': '5',
       'argocd.argoproj.io/sync-options': 'Prune=false,Delete=false',
     },
   },
@@ -49,7 +47,7 @@ local test1 = k8s.object('test1', {
       example: 'true',
     },
   },
-}, wave=10);
+});
 
 local request1 = lib.request('test-request1', 'crossform.io/v1alpha1', 'xmodule', 'example-claim-p8nzs');
 
@@ -62,8 +60,7 @@ local test2 = k8s.object('test2', {
       //test1: request1.result.spec.claimRef.kind
     },
   },
-},
-  wave=10
+}
 );
 
 local xr = lib.resource('xr1', std.extVar('xr'));
@@ -75,7 +72,6 @@ local rds = lib.resource('rds1', {
   metadata: {
     name: 'rds1',
     annotations: {
-      'argocd.argoproj.io/sync-wave': '20',
       'argocd.argoproj.io/sync-options': 'Prune=false,Delete=false',
     },
   },
@@ -127,8 +123,7 @@ local rdsSecret = k8s.object('rds-secret', {
   data: {
     password: 'dGVzdFBhc3N3b3JkITEyMw==',
   },
-},
-  wave=10
+}
 );
 
 {
