@@ -16,9 +16,6 @@ local getObserved(id) = std.get(observed, id, {});
     kind: 'Object',
     metadata: {
       [if name!=null then 'name']: name,
-      annotations: {
-        'argocd.argoproj.io/sync-options': 'Prune=false,Delete=false',
-      },
     },
     spec: {
       forProvider: {
@@ -36,13 +33,7 @@ local getObserved(id) = std.get(observed, id, {});
             ],
           },
         }
-        ))+{
-          metadata+: {
-            annotations+: {
-              'argocd.argoproj.io/sync-options': 'Prune=false,Delete=false',
-            },
-          },
-        },
+        ))
       },
       [if $.providerConfig!=null then 'providerConfigRef']: {
         name: $.providerConfig,

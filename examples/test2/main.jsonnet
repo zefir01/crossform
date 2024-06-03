@@ -6,9 +6,6 @@ local k8sProviderConfig = lib.resource('providerConfig', {
   kind: 'ProviderConfig',
   metadata: {
     name: 'kubernetes-local',
-    annotations: {
-      'argocd.argoproj.io/sync-options': 'Prune=false,Delete=false',
-    },
   },
   spec: {
     credentials: {
@@ -24,9 +21,6 @@ local awsProviderConfig = lib.resource('providerConfigAws', {
   kind: 'ProviderConfig',
   metadata: {
     name: 'default',
-    annotations: {
-      'argocd.argoproj.io/sync-options': 'Prune=false,Delete=false',
-    },
   },
   spec: {
     credentials: {
@@ -71,9 +65,6 @@ local rds = lib.resource('rds1', {
   kind: 'DBInstance',
   metadata: {
     name: 'rds1',
-    annotations: {
-      'argocd.argoproj.io/sync-options': 'Prune=false,Delete=false',
-    },
   },
   spec: {
     forProvider: {

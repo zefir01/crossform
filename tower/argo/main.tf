@@ -484,6 +484,9 @@ resource "kubernetes_manifest" "argo_base" {
   lifecycle {
     prevent_destroy = true
   }
+  field_manager {
+    force_conflicts = true
+  }
   manifest = {
     apiVersion = "argoproj.io/v1alpha1"
     kind       = "Application"
@@ -547,7 +550,7 @@ resource "kubernetes_manifest" "argo_base" {
           "RespectIgnoreDifferences=true",
           "ServerSideApply=true",
           "SkipDryRunOnMissingResource=true",
-          "PrunePropagationPolicy=orphan"
+          "PrunePropagationPolicy=background"
         ]
       }
     }
