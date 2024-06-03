@@ -18,7 +18,7 @@ local getObserved(id) = std.get(observed, id, {});
       name: name,
       annotations: {
         [if wave != null then 'argocd.argoproj.io/sync-wave']: std.toString(wave),
-        'argocd.argoproj.io/sync-options': 'Prune=false',
+        'argocd.argoproj.io/sync-options': 'Prune=false,Delete=false',
       },
     },
     spec: {
@@ -40,7 +40,7 @@ local getObserved(id) = std.get(observed, id, {});
         ))+{
           metadata+: {
             annotations+: {
-              'argocd.argoproj.io/sync-options': 'Prune=false',
+              'argocd.argoproj.io/sync-options': 'Prune=false,Delete=false',
             },
           },
         },
