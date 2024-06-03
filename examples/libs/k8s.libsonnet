@@ -9,7 +9,7 @@ local getObserved(id) = std.get(observed, id, {});
 
 {
   providerConfig: null,
-  withProviderConfig(name):: ${ providerConfig: name },
+  withProviderConfig(name):: ${ providerConfig+: name },
 
   object(id, obj):: lib.resource(id, {
     apiVersion: 'kubernetes.crossplane.io/v1alpha2',
