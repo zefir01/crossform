@@ -33,7 +33,7 @@ local awsProviderConfig = lib.resource('providerConfigAws', {
   },
 };
 
-local test1 =  k8s.object('test1', {
+local test1 = k8s.object('test1', {
   apiVersion: 'v1',
   kind: 'Namespace',
   metadata: {
@@ -41,7 +41,7 @@ local test1 =  k8s.object('test1', {
       example: 'true',
     },
   },
-});
+}, wave=10);
 
 local request1 = lib.request('test-request1', 'crossform.io/v1alpha1', 'xmodule', 'example-claim-p8nzs');
 
@@ -54,7 +54,8 @@ local test2 = k8s.object('test2', {
       //test1: request1.result.spec.claimRef.kind
     },
   },
-}
+},
+  wave=10
 );
 
 local xr = lib.resource('xr1', std.extVar('xr'));
@@ -65,6 +66,9 @@ local rds = lib.resource('rds1', {
   kind: 'DBInstance',
   metadata: {
     name: 'rds1',
+    annotations: {
+      'argocd.argoproj.io/sync-wave': 20,
+    },
   },
   spec: {
     forProvider: {
@@ -114,7 +118,8 @@ local rdsSecret = k8s.object('rds-secret', {
   data: {
     password: 'dGVzdFBhc3N3b3JkITEyMw==',
   },
-}
+},
+  wave=10
 );
 
 {

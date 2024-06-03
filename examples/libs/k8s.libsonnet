@@ -11,11 +11,14 @@ local getObserved(id) = std.get(observed, id, {});
   providerConfig: null,
   withProviderConfig(name):: ${ providerConfig: name },
 
-  object(id, obj, name=id):: lib.resource(id, {
+  object(id, obj, name=id, wave=null):: lib.resource(id, {
     apiVersion: 'kubernetes.crossplane.io/v1alpha2',
     kind: 'Object',
-    [if name!=null then 'metadata']: {
+    [if name!=null || wave!=null then 'metadata']: {
       name: name,
+      [if wave != null then 'annotations']: {
+        'argocd.argoproj.io/sync-wave': std.toString(wave),
+      }
     },
     spec: {
       forProvider: {
