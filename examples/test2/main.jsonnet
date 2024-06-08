@@ -17,25 +17,6 @@ local k8sProviderConfig = lib.resource('providerConfig', {
 
 local k8s = (import '../libs/k8s.libsonnet').withProviderConfig(k8sProviderConfig.metadata.name);
 
-local awsProviderConfig = lib.resource('providerConfigAws', {
-  apiVersion: 'aws.crossplane.io/v1beta1',
-  kind: 'ProviderConfig',
-  metadata: {
-    name: 'default',
-  },
-  spec: {
-    credentials: {
-      source: 'InjectedIdentity',
-    },
-  },
-})+{
-  crossform+:: {
-    ready: true,
-  },
-};
-
-local vpc = (import '../libs/vpc.libsonnet').withProviderConfig(awsProviderConfig.metadata.name);
-
 local test1 = k8s.object('test1', {
   apiVersion: 'v1',
   kind: 'Namespace',
@@ -120,7 +101,6 @@ local rdsSecret = k8s.object('rds-secret', {
 }
 );
 
-local testVpc = vpc.vpc('test', '10.100.0.0/16');
 
 {
   providerConfig: k8sProviderConfig,
@@ -129,8 +109,6 @@ local testVpc = vpc.vpc('test', '10.100.0.0/16');
   //request1: request1,
   //output1: lib.output('test1', input1.value),
   //input1: input1,
-  awsProviderConfig: awsProviderConfig,
   //rdsSecret: rdsSecret,
   //rds: rds,
-  testVpc: testVpc
 }
