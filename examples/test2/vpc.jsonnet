@@ -38,6 +38,6 @@ local publicSubnetC = vpc.subnet('public-c', networks[5].cidr, 'c', testVpc);
   privateSubnetB: privateSubnetB,
   privateSubnetC: privateSubnetC,
   publicSubnetA: publicSubnetA,
-  //publicSubnetB: publicSubnetB,
+  publicSubnetB: publicSubnetB,
   //publicSubnetC: publicSubnetC
 }
