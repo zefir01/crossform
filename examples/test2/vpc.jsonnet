@@ -31,29 +31,29 @@ local publicSubnetA = vpc.subnet('public-a', networks[3].cidr, 'a', testVpc, pri
 local publicSubnetB = vpc.subnet('public-b', networks[4].cidr, 'b', testVpc, private=false);
 local publicSubnetC = vpc.subnet('public-c', networks[5].cidr, 'c', testVpc, private=false);
 
-local eip = {
-  [name]: vpc.eip(name)
-  for name in ['a', 'b', 'c']
-};
+local eipA = vpc.eip('a');
+local eipB = vpc.eip('b');
+local eipC = vpc.eip('c');
 
-local natA = vpc.natGateway('a', publicSubnetA, eip.a);
-local natB = vpc.natGateway('b', publicSubnetB, eip.b);
-local natC = vpc.natGateway('c', publicSubnetC, eip.c);
+local natA = vpc.natGateway('a', publicSubnetA, eipA);
+local natB = vpc.natGateway('b', publicSubnetB, eipB);
+local natC = vpc.natGateway('c', publicSubnetC, eipC);
 local internetGateway = vpc.internetGateway('default', testVpc);
 
-  {
-    awsProviderConfig: awsProviderConfig,
-    testVpc: testVpc,
-    privateSubnetA: privateSubnetA,
-    privateSubnetB: privateSubnetB,
-    privateSubnetC: privateSubnetC,
-    publicSubnetA: publicSubnetA,
-    publicSubnetB: publicSubnetB,
-    publicSubnetC: publicSubnetC,
-    natA: natA,
-    natB: natB,
-    natC: natC,
-    internetGateway: internetGateway,
-  }
-  +
-  eip
+{
+  awsProviderConfig: awsProviderConfig,
+  testVpc: testVpc,
+  privateSubnetA: privateSubnetA,
+  privateSubnetB: privateSubnetB,
+  privateSubnetC: privateSubnetC,
+  publicSubnetA: publicSubnetA,
+  publicSubnetB: publicSubnetB,
+  publicSubnetC: publicSubnetC,
+  eipA: eipA,
+  eipB: eipB,
+  eipC: eipC,
+  natA: natA,
+  natB: natB,
+  natC: natC,
+  internetGateway: internetGateway,
+}
