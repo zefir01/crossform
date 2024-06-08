@@ -23,10 +23,21 @@ local vpc = (import '../libs/vpc.libsonnet').withProviderConfig(awsProviderConfi
 local cidr = '10.100.0.0/16';
 local networks = ip.calcNetworks(cidr, [18, 18, 18, 20, 20, 20]);
 local testVpc = vpc.vpc('test', cidr);
-local subnetA = vpc.subnet('a', networks[0].cidr, 'a', testVpc);
+local privateSubnetA = vpc.subnet('private-a', networks[0].cidr, 'a', testVpc);
+local privateSubnetB = vpc.subnet('private-b', networks[1].cidr, 'b', testVpc);
+local privateSubnetC = vpc.subnet('private-c', networks[2].cidr, 'c', testVpc);
+
+local publicSubnetA = vpc.subnet('public-a', networks[0].cidr, 'a', testVpc);
+local publicSubnetB = vpc.subnet('public-b', networks[1].cidr, 'b', testVpc);
+local publicSubnetC = vpc.subnet('public-c', networks[2].cidr, 'c', testVpc);
 
 {
   awsProviderConfig: awsProviderConfig,
   testVpc: testVpc,
-  subnetA: subnetA,
+  privateSubnetA: privateSubnetA,
+  privateSubnetB: privateSubnetB,
+  privateSubnetC: privateSubnetC,
+  publicSubnetA: publicSubnetA,
+  publicSubnetB: publicSubnetB,
+  publicSubnetC: publicSubnetC
 }
