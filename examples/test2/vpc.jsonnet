@@ -18,7 +18,7 @@ local awsProviderConfig = lib.resource('providerConfigAws', {
   },
 };
 
-local vpc = (import '../libs/vpc.libsonnet').withProviderConfig(awsProviderConfig.metadata.name);
+local vpc = (import '../libs/vpc.libsonnet').withProviderConfig(awsProviderConfig.metadata.name).withRegion('us-east-2');
 
 local cidr = '10.100.0.0/16';
 local networks = ip.calcNetworks(cidr, [18, 18, 18, 20, 20, 20]);
