@@ -40,11 +40,11 @@ local natB = vpc.natGateway('b', publicSubnetB, eipB);
 local natC = vpc.natGateway('c', publicSubnetC, eipC);
 local internetGateway = vpc.internetGateway('default', testVpc);
 
-local privateRouteTableA=vpc.routeTable('private-a', [vpc.routeNatGateway('0.0.0.0/0', natA)], [privateSubnetA], testVpc);
-local privateRouteTableB=vpc.routeTable('private-b', [vpc.routeNatGateway('0.0.0.0/0', natB)], [privateSubnetB], testVpc);
-local privateRouteTableC=vpc.routeTable('private-c', [vpc.routeNatGateway('0.0.0.0/0', natC)], [privateSubnetC], testVpc);
+local privateRouteTableA = vpc.routeTable('private-a', [vpc.routeNatGateway('0.0.0.0/0', natA)], [privateSubnetA], testVpc);
+local privateRouteTableB = vpc.routeTable('private-b', [vpc.routeNatGateway('0.0.0.0/0', natB)], [privateSubnetB], testVpc);
+local privateRouteTableC = vpc.routeTable('private-c', [vpc.routeNatGateway('0.0.0.0/0', natC)], [privateSubnetC], testVpc);
 
-local publicRouteTable=vpc.routeTable('public', [vpc.routeGateway('0.0.0.0/0', internetGateway)], [publicSubnetA, publicSubnetB, publicSubnetC], testVpc);
+local publicRouteTable = vpc.routeTable('public', [vpc.routeGateway('0.0.0.0/0', internetGateway)], [publicSubnetA, publicSubnetB, publicSubnetC], testVpc);
 
 {
   awsProviderConfig: awsProviderConfig,
@@ -65,5 +65,11 @@ local publicRouteTable=vpc.routeTable('public', [vpc.routeGateway('0.0.0.0/0', i
   privateRouteTableA: privateRouteTableA,
   privateRouteTableB: privateRouteTableB,
   privateRouteTableC: privateRouteTableC,
-  publicRouteTable: publicRouteTable
+  publicRouteTable: publicRouteTable,
+  vpcId: lib.output('vpcId', testVpc.status.atProvider.vpcId),
+  natIps: lib.output('natIps', [
+    eipA.status.atProvider.publicIp,
+    eipB.status.atProvider.publicIp,
+    eipC.status.atProvider.publicIp,
+  ]),
 }
