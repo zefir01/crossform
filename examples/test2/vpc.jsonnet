@@ -17,9 +17,10 @@ local awsProviderConfig = lib.resource('providerConfigAws', {
   },
 };
 
+
 local cidr = '10.100.0.0/16';
 
 
 {
-
+  awsProviderConfig: awsProviderConfig,
 }
