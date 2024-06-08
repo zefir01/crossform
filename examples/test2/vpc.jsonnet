@@ -1,4 +1,5 @@
 local lib = std.extVar('crossform');
+local ip = import '../libs/ip.libsonnet';
 
 local awsProviderConfig = lib.resource('providerConfigAws', {
   apiVersion: 'aws.crossplane.io/v1beta1',
@@ -19,8 +20,12 @@ local awsProviderConfig = lib.resource('providerConfigAws', {
 
 local vpc = (import '../libs/vpc.libsonnet').withProviderConfig(awsProviderConfig.metadata.name);
 
-local testVpc = vpc.vpc('test', '10.100.0.0/16');
+local cidr='10.100.0.0/16';
+local networks=ip.calcNetworks(cidr, [18,18,18,20,20,20]);
+local testVpc = vpc.vpc('test', cidr);
+local subnetA=vpc.subnet('A', networks[0].cidr, 'A', testVpc);
 
 {
-  testVpc: testVpc
+  testVpc: testVpc,
+  subnetA: subnetA
 }

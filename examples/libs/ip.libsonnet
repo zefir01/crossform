@@ -6,6 +6,7 @@ local getNetworkParams(cidr, maskBits) = {
   host: cidr & ~$.mask,
   size: getSize(maskBits),
   broadcast: $.network+$.size-1,
+  maskBits: maskBits,
 };
 
 local parseCidr(cidr) = {
@@ -23,6 +24,7 @@ local networkParamToStr(params) = {
   //host: getCidr(params.host),
   size: params.size,
   broadcast: getCidr(params.broadcast),
+  cidr: $.network+'/'+std.toString(params.maskBits),
 };
 
 local calcNetworks(cidrStr, nets) =
@@ -39,9 +41,9 @@ local calcNetworks(cidrStr, nets) =
   ];
 
 {
-//  nets: [25, 25],
-//  cidr: '192.168.1.5/24',
-//  ttt: calcNetworks($.cidr, $.nets),
+  //  nets: [25, 25],
+  //  cidr: '192.168.1.5/24',
+  //  ttt: calcNetworks($.cidr, $.nets),
   calcNetworks(cidrStr, nets)::
     local parsed = parseCidr(cidrStr);
     local baseParams = getNetworkParams(parsed.addr, parsed.maskBits);
