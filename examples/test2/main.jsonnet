@@ -124,13 +124,13 @@ local testVpc = vpc.vpc('test', '10.100.0.0/16');
 
 {
   providerConfig: k8sProviderConfig,
-  test1: test1,
-  test2: test2,
-  request1: request1,
-  output1: lib.output('test1', input1.value),
-  input1: input1,
+  //test1: test1,
+  //test2: test2,
+  //request1: request1,
+  //output1: lib.output('test1', input1.value),
+  //input1: input1,
   awsProviderConfig: awsProviderConfig,
-  rdsSecret: rdsSecret,
+  //rdsSecret: rdsSecret,
   //rds: rds,
   testVpc: testVpc
 }
