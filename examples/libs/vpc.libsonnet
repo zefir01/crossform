@@ -46,7 +46,7 @@ local lib = std.extVar('crossform');
     },
   }),
 
-  natGateway(name):: lib.resource('nat-gateway-'+name, {
+  natGateway(name, subnet):: lib.resource('nat-gateway-'+name, {
     apiVersion: 'ec2.aws.crossplane.io/v1beta1',
     kind: 'NATGateway',
     metadata: {
@@ -55,6 +55,7 @@ local lib = std.extVar('crossform');
     spec: {
       forProvider: {
         region: $.region,
+        subnetId: subnet.status.atProvider.subnetId,
       },
       [if $.providerConfig!=null then 'providerConfigRef']: {
         name: $.providerConfig,

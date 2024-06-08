@@ -31,6 +31,11 @@ local publicSubnetA = vpc.subnet('public-a', networks[3].cidr, 'a', testVpc, pri
 local publicSubnetB = vpc.subnet('public-b', networks[4].cidr, 'b', testVpc, private=false);
 local publicSubnetC = vpc.subnet('public-c', networks[5].cidr, 'c', testVpc, private=false);
 
+local natA = vpc.natGateway('a', privateSubnetA);
+local natB = vpc.natGateway('b', privateSubnetA);
+local natC = vpc.natGateway('c', privateSubnetA);
+local internetGateway = vpc.internetGateway('default', testVpc);
+
 {
   awsProviderConfig: awsProviderConfig,
   testVpc: testVpc,
@@ -39,5 +44,9 @@ local publicSubnetC = vpc.subnet('public-c', networks[5].cidr, 'c', testVpc, pri
   privateSubnetC: privateSubnetC,
   publicSubnetA: publicSubnetA,
   publicSubnetB: publicSubnetB,
-  publicSubnetC: publicSubnetC
+  publicSubnetC: publicSubnetC,
+  natA: natA,
+  natB: natB,
+  natC: natC,
+  internetGateway: internetGateway,
 }
