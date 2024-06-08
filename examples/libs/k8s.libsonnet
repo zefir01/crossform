@@ -33,11 +33,26 @@ local getObserved(id) = std.get(observed, id, {});
             ],
           },
         }
-        ))
+        )),
       },
       [if $.providerConfig!=null then 'providerConfigRef']: {
         name: $.providerConfig,
       },
     },
   }),
+
+  module(id, path, revision='main', inputs=null):: $.object(id, {
+    apiVersion: 'crossform.io/v1alpha1',
+    kind: 'xModule',
+    metadata: {
+      name: xr.metadata.name+'-'+id,
+    },
+    spec: {
+      repository: 'git@github.com:zefir01/crossform.git',
+      revision: revision,
+      path: path,
+      [if inputs!=null then 'inputs']: inputs,
+    },
+  }
+  ),
 }
