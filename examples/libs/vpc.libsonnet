@@ -23,7 +23,7 @@ local xr = std.extVar('xr');
         tags: [
           {
             key: 'Name',
-            value: name,
+            value: xr.metadata.name+'-'+name,
           },
         ],
       },
@@ -49,7 +49,7 @@ local xr = std.extVar('xr');
         tags: [
           {
             key: 'Name',
-            value: name,
+            value: xr.metadata.name+'-'+name,
           },
         ],
       },
@@ -72,7 +72,7 @@ local xr = std.extVar('xr');
         tags: [
           {
             key: 'Name',
-            value: name,
+            value: xr.metadata.name+'-'+name,
           },
         ],
       },
@@ -96,7 +96,7 @@ local xr = std.extVar('xr');
         tags: [
           {
             key: 'Name',
-            value: name,
+            value: xr.metadata.name+'-'+name,
           },
         ],
       },
@@ -119,7 +119,7 @@ local xr = std.extVar('xr');
         tags: [
           {
             key: 'Name',
-            value: name,
+            value: xr.metadata.name+'-'+name,
           },
         ],
       },
@@ -159,7 +159,7 @@ local xr = std.extVar('xr');
         tags: [
           {
             key: 'Name',
-            value: name,
+            value: xr.metadata.name+'-'+name,
           },
         ],
       },
