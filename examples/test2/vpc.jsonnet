@@ -23,7 +23,7 @@ local vpc = (import '../libs/vpc.libsonnet').withProviderConfig(awsProviderConfi
 local cidr = '10.100.0.0/16';
 local networks = ip.calcNetworks(cidr, [18, 18, 18, 20, 20, 20]);
 local testVpc = vpc.vpc('test', cidr);
-local subnetA = vpc.subnet('A', networks[0].cidr, 'A', testVpc);
+local subnetA = vpc.subnet('a', networks[0].cidr, 'a', testVpc);
 
 {
   awsProviderConfig: awsProviderConfig,
