@@ -92,7 +92,7 @@ local xr = std.extVar('xr');
       forProvider: {
         region: $.region,
         subnetId: subnet.status.atProvider.subnetId,
-        allocationId: eip.status.atProvider.allocationId,
+        //allocationId: eip.status.atProvider.allocationId,
         tags: [
           {
             key: 'Name',
