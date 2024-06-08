@@ -19,6 +19,12 @@ local lib = std.extVar('crossform');
         enableDnsSupport: true,
         enableDnsHostNames: true,
         instanceTenancy: 'default',
+        tags: [
+          {
+            key: 'Name',
+            value: name,
+          },
+        ],
       },
       [if $.providerConfig!=null then 'providerConfigRef']: {
         name: $.providerConfig,
@@ -39,6 +45,12 @@ local lib = std.extVar('crossform');
         cidrBlock: cidr,
         vpcId: vpc.status.atProvider.vpcId,
         mapPublicIPOnLaunch: !private,
+        tags: [
+          {
+            key: 'Name',
+            value: name,
+          },
+        ],
       },
       [if $.providerConfig!=null then 'providerConfigRef']: {
         name: $.providerConfig,
@@ -56,6 +68,12 @@ local lib = std.extVar('crossform');
       forProvider: {
         region: $.region,
         subnetId: subnet.status.atProvider.subnetId,
+        tags: [
+          {
+            key: 'Name',
+            value: name,
+          },
+        ],
       },
       [if $.providerConfig!=null then 'providerConfigRef']: {
         name: $.providerConfig,
@@ -73,6 +91,12 @@ local lib = std.extVar('crossform');
       forProvider: {
         region: $.region,
         vpcId: vpc.status.atProvider.vpcId,
+        tags: [
+          {
+            key: 'Name',
+            value: name,
+          },
+        ],
       },
       [if $.providerConfig!=null then 'providerConfigRef']: {
         name: $.providerConfig,
@@ -107,6 +131,12 @@ local lib = std.extVar('crossform');
           for subnet in subnets
         ],
         vpcId: vpc.status.atProvider.vpcId,
+        tags: [
+          {
+            key: 'Name',
+            value: name,
+          },
+        ],
       },
       [if $.providerConfig!=null then 'providerConfigRef']: {
         name: $.providerConfig,
