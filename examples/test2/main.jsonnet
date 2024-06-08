@@ -1,6 +1,7 @@
 local lib = std.extVar('crossform');
 local observed = std.extVar('observed');
 
+
 local k8sProviderConfig = lib.resource('providerConfig', {
   apiVersion: 'kubernetes.crossplane.io/v1alpha1',
   kind: 'ProviderConfig',
@@ -32,6 +33,8 @@ local awsProviderConfig = lib.resource('providerConfigAws', {
     ready: true,
   },
 };
+
+local vpc = (import '../libs/vpc.libsonnet').withProviderConfig(awsProviderConfig.metadata.name);
 
 local test1 = k8s.object('test1', {
   apiVersion: 'v1',
@@ -117,6 +120,8 @@ local rdsSecret = k8s.object('rds-secret', {
 }
 );
 
+local testVpc = vpc.vpc('test', '10.100.0.0/16');
+
 {
   providerConfig: k8sProviderConfig,
   test1: test1,
@@ -126,5 +131,6 @@ local rdsSecret = k8s.object('rds-secret', {
   input1: input1,
   awsProviderConfig: awsProviderConfig,
   rdsSecret: rdsSecret,
-  rds: rds,
+  //rds: rds,
+  testVpc: testVpc
 }
