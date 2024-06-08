@@ -3,6 +3,19 @@ local revision = std.extVar('revision');
 
 [
   {
+    apiVersion: 'kubernetes.crossplane.io/v1alpha1',
+    kind: 'ProviderConfig',
+    metadata: {
+      name: 'kubernetes-local',
+    },
+    spec: {
+      credentials: {
+        source: 'InjectedIdentity',
+      },
+    },
+  },
+
+  {
     apiVersion: 'crossform.io/v1alpha1',
     kind: 'xModule',
     metadata: {
@@ -27,5 +40,5 @@ local revision = std.extVar('revision');
     metadata: {
       name: 'testttt',
     },
-  }
+  },
 ]

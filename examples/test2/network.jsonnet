@@ -1,5 +1,4 @@
 local lib = std.extVar('crossform');
-local main = import 'main.jsonnet';
 
 local awsProviderConfig = lib.resource('providerConfigAws', {
   apiVersion: 'aws.crossplane.io/v1beta1',
@@ -19,7 +18,7 @@ local awsProviderConfig = lib.resource('providerConfigAws', {
 };
 
 
-local k8s = (import '../libs/k8s.libsonnet').withProviderConfig(main.providerConfig.metadata.name);
+local k8s = (import '../libs/k8s.libsonnet').withProviderConfig('kubernetes-local');
 
 
 {
