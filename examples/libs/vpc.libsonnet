@@ -58,7 +58,30 @@ local lib = std.extVar('crossform');
     },
   }),
 
-  natGateway(name, subnet):: lib.resource('nat-gateway-'+name, {
+  eip(name):: {
+    apiVersion: 'ec2.aws.crossplane.io/v1beta1',
+    kind: 'Address',
+    metadata: {
+      generateName: name+'-',
+    },
+    spec: {
+      forProvider: {
+        region: $.region,
+        domain: 'vpc',
+        tags: [
+          {
+            key: 'Name',
+            value: name,
+          },
+        ],
+      },
+      [if $.providerConfig!=null then 'providerConfigRef']: {
+        name: $.providerConfig,
+      },
+    },
+  },
+
+  natGateway(name, subnet, eip):: lib.resource('nat-gateway-'+name, {
     apiVersion: 'ec2.aws.crossplane.io/v1beta1',
     kind: 'NATGateway',
     metadata: {
@@ -68,6 +91,7 @@ local lib = std.extVar('crossform');
       forProvider: {
         region: $.region,
         subnetId: subnet.status.atProvider.subnetId,
+        allocationId: eip.status.atProvider.allocationId,
         tags: [
           {
             key: 'Name',
