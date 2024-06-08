@@ -103,7 +103,7 @@ local rdsSecret = k8s.object('rds-secret', {
 
 
 {
-  //providerConfig: k8sProviderConfig,
+  providerConfig: k8sProviderConfig,
   //test1: test1,
   //test2: test2,
   //request1: request1,
