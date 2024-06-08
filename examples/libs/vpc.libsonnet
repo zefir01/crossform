@@ -59,7 +59,7 @@ local xr = std.extVar('xr');
     },
   }),
 
-  eip(name):: {
+  eip(name):: lib.resource('eip-'+name, {
     apiVersion: 'ec2.aws.crossplane.io/v1beta1',
     kind: 'Address',
     metadata: {
@@ -80,7 +80,7 @@ local xr = std.extVar('xr');
         name: $.providerConfig,
       },
     },
-  },
+  }),
 
   natGateway(name, subnet, eip):: lib.resource('nat-gateway-'+name, {
     apiVersion: 'ec2.aws.crossplane.io/v1beta1',
