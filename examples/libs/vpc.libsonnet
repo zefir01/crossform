@@ -1,4 +1,5 @@
 local lib = std.extVar('crossform');
+local xr = std.extVar('xr');
 
 {
   providerConfig: null,
@@ -10,7 +11,7 @@ local lib = std.extVar('crossform');
     apiVersion: 'ec2.aws.crossplane.io/v1beta1',
     kind: 'VPC',
     metadata: {
-      generateName: name+'-',
+      name: xr.metadata.name+'-'+name,
     },
     spec: {
       forProvider: {
@@ -36,7 +37,7 @@ local lib = std.extVar('crossform');
     apiVersion: 'ec2.aws.crossplane.io/v1beta1',
     kind: 'Subnet',
     metadata: {
-      generateName: name+'-',
+      name: xr.metadata.name+'-'+name,
     },
     spec: {
       forProvider: {
@@ -62,7 +63,7 @@ local lib = std.extVar('crossform');
     apiVersion: 'ec2.aws.crossplane.io/v1beta1',
     kind: 'Address',
     metadata: {
-      generateName: name+'-',
+      name: xr.metadata.name+'-'+name,
     },
     spec: {
       forProvider: {
@@ -85,7 +86,7 @@ local lib = std.extVar('crossform');
     apiVersion: 'ec2.aws.crossplane.io/v1beta1',
     kind: 'NATGateway',
     metadata: {
-      generateName: name+'-',
+      name: xr.metadata.name+'-'+name,
     },
     spec: {
       forProvider: {
@@ -109,7 +110,7 @@ local lib = std.extVar('crossform');
     apiVersion: 'ec2.aws.crossplane.io/v1beta1',
     kind: 'InternetGateway',
     metadata: {
-      generateName: name+'-',
+      name: xr.metadata.name+'-'+name,
     },
     spec: {
       forProvider: {
@@ -142,7 +143,7 @@ local lib = std.extVar('crossform');
     apiVersion: 'ec2.aws.crossplane.io/v1beta1',
     kind: 'RouteTable',
     metadata: {
-      generateName: name+'-',
+      name: xr.metadata.name+'-'+name,
     },
     spec: {
       forProvider: {
