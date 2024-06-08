@@ -26,7 +26,7 @@ local lib = std.extVar('crossform');
     },
   }),
 
-  subnet(name, cidr, availabilityZone, vpc):: lib.resource('subnet-'+name, {
+  subnet(name, cidr, availabilityZone, vpc, private=true):: lib.resource('subnet-'+name, {
     apiVersion: 'ec2.aws.crossplane.io/v1beta1',
     kind: 'Subnet',
     metadata: {
@@ -38,7 +38,7 @@ local lib = std.extVar('crossform');
         availabilityZone: $.region+availabilityZone,
         cidrBlock: cidr,
         vpcId: vpc.status.atProvider.vpcId,
-        mapPublicIPOnLaunch: true,
+        mapPublicIPOnLaunch: !private,
       },
       [if $.providerConfig!=null then 'providerConfigRef']: {
         name: $.providerConfig,

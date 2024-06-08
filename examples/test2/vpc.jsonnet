@@ -27,9 +27,9 @@ local privateSubnetA = vpc.subnet('private-a', networks[0].cidr, 'a', testVpc);
 local privateSubnetB = vpc.subnet('private-b', networks[1].cidr, 'b', testVpc);
 local privateSubnetC = vpc.subnet('private-c', networks[2].cidr, 'c', testVpc);
 
-local publicSubnetA = vpc.subnet('public-a', networks[3].cidr, 'a', testVpc);
-local publicSubnetB = vpc.subnet('public-b', networks[4].cidr, 'b', testVpc);
-local publicSubnetC = vpc.subnet('public-c', networks[5].cidr, 'c', testVpc);
+local publicSubnetA = vpc.subnet('public-a', networks[3].cidr, 'a', testVpc, private=false);
+local publicSubnetB = vpc.subnet('public-b', networks[4].cidr, 'b', testVpc, private=false);
+local publicSubnetC = vpc.subnet('public-c', networks[5].cidr, 'c', testVpc, private=false);
 
 {
   awsProviderConfig: awsProviderConfig,
