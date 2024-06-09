@@ -68,7 +68,6 @@ local cluster = k.eks('test1', privateSubnets.value, eks, [eksSg]);
 local nodeGroup = k.nodeGroup('main', cluster, privateSubnets.value, node);
 
 local coredns = k.addon('coredns', cluster, 'coredns', 'v1.11.1-eksbuild.4');
-local kubeproxy = k.addon('kubeproxy', cluster, 'kubeproxy', 'v1.29.0-eksbuild.1');
 local vpccni = k.addon('vpc-cni', cluster, 'vpc-cni', 'v1.16.0-eksbuild.1');
 
 {
@@ -89,6 +88,5 @@ local vpccni = k.addon('vpc-cni', cluster, 'vpc-cni', 'v1.16.0-eksbuild.1');
   cluster: cluster,
   nodeGroup: nodeGroup,
   coredns: coredns,
-  kubeproxy: kubeproxy,
   vpccni: vpccni,
 }
