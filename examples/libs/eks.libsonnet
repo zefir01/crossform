@@ -108,4 +108,42 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
       },
     },
   }),
+
+  awsAuthMapRole(arn, groups):: {
+    rolearn: arn,
+    username: arn,
+    groups: groups,
+  },
+
+  awsAuthMapUser(arn, username, groups):: {
+    userarn: arn,
+    username: username,
+    groups: groups,
+  },
+
+  awsAuth(name, cluster, k8sProviderConfig, mapUsers=[], mapRoles=[])::
+    local k8s = (import '../libs/k8s.libsonnet').withProviderConfig(k8sProviderConfig.value);
+    lib.resource('aws-auth-'+name, k8s.object(name+nameSuffix, {
+      apiVersion: 'v1',
+      kind: 'ConfigMap',
+      metadata: {
+        name: 'aws-auth',
+        namespace: 'kube-system',
+      },
+      data: {
+        mapRoles: std.toString([
+          {
+            groups: [
+              'system:bootstrappers',
+              'system:nodes',
+            ],
+            username: 'system:node:{{EC2PrivateDNSName}}',
+            rolearn: cluster.spec.roleArn,
+          },
+        ] + mapRoles ),
+        [if std.length(mapUsers)>0 then 'mapUsers']: mapUsers,
+      },
+    },
+      orphan=true
+    )),
 }

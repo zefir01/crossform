@@ -73,7 +73,9 @@ local nodeGroup = k.nodeGroup('main', cluster, privateSubnets.value, node);
 local coredns = k.addon('coredns', cluster, 'coredns', 'v1.11.1-eksbuild.4');
 local vpccni = k.addon('vpc-cni', cluster, 'vpc-cni', 'v1.16.0-eksbuild.1');
 
-local providerConfig=k.k8sProviderConfig('test1', cluster);
+local providerConfig = k.k8sProviderConfig('test1', cluster);
+
+local awsAuth = k.awsAuth('auth', cluster, providerConfig, );
 
 {
   region: region,
@@ -95,5 +97,6 @@ local providerConfig=k.k8sProviderConfig('test1', cluster);
   coredns: coredns,
   vpccni: vpccni,
   providerConfig: providerConfig,
-  providerConfigName: lib.output('providerConfigName', providerConfig.metadata.name)
+  providerConfigName: lib.output('providerConfigName', providerConfig.metadata.name),
+  awsAuth: awsAuth,
 }
