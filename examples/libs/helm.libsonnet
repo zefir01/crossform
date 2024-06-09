@@ -35,23 +35,25 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
     },
   }),
 
-  crb():: lib.resource('provider-helm-cluster-admin', {
-    apiVersion: 'rbac.authorization.k8s.io/v1',
-    kind: 'ClusterRoleBinding',
-    metadata: {
-      name: 'provider-helm-cluster-admin',
-    },
-    subjects: [
-      {
-        kind: 'ServiceAccount',
-        name: 'provider-helm',
-        namespace: 'crossplane-system',
+  crb(k8sProviderConfig):: lib.resource('provider-helm-cluster-admin',
+    local k8s = (import '../libs/k8s.libsonnet').withProviderConfig(k8sProviderConfig.metadata.name);
+    k8s.object('provider-helm-cluster-admin'+nameSuffix, {
+      apiVersion: 'rbac.authorization.k8s.io/v1',
+      kind: 'ClusterRoleBinding',
+      metadata: {
+        name: 'provider-helm-cluster-admin',
       },
-    ],
-    roleRef: {
-      kind: 'ClusterRole',
-      name: 'cluster-admin',
-      apiGroup: 'rbac.authorization.k8s.io',
-    },
-  }),
+      subjects: [
+        {
+          kind: 'ServiceAccount',
+          name: 'provider-helm',
+          namespace: 'crossplane-system',
+        },
+      ],
+      roleRef: {
+        kind: 'ClusterRole',
+        name: 'cluster-admin',
+        apiGroup: 'rbac.authorization.k8s.io',
+      },
+    })),
 }

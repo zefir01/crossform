@@ -127,7 +127,7 @@ local rdsSecret = k8s.object('rds-secret', {
   accountId: accountId,
   providerHelm: helm.provider(),
   helmRuntimeConfig: helm.runtimeConfig(),
-  helmClusterAdmin: helm.crb(),
+  helmClusterAdmin: helm.crb(k8sProviderConfig),
   //test1: test1,
   //test2: test2,
   //request1: request1,
