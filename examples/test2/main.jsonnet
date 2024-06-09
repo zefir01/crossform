@@ -1,6 +1,8 @@
 local lib = std.extVar('crossform');
 local observed = std.extVar('observed');
 
+local helm = import '../libs/helm.libsonnet';
+
 
 local k8sProviderConfig = lib.resource('providerConfig', {
   apiVersion: 'kubernetes.crossplane.io/v1alpha1',
@@ -122,7 +124,8 @@ local rdsSecret = k8s.object('rds-secret', {
 {
   providerConfig: k8sProviderConfig,
   awsProviderConfig: awsProviderConfig,
-  accountId: accountId
+  accountId: accountId,
+  providerHelm: helm.provider(),
   //test1: test1,
   //test2: test2,
   //request1: request1,
