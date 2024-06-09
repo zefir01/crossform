@@ -10,6 +10,7 @@ repoServer:
     tag: 0.0.14
 crossplane:
   installK8sLocalProvider: true
+  clusterAdminPermissions: true
 function:
   install: true
   image:

@@ -3,14 +3,14 @@ kind: Role
 metadata:
   name: {{ include "crossform.fullname" . }}
 rules:
-- apiGroups:
-  - ""
-  resources:
-  - secrets
-  verbs:
-  - get
-  - list
-  - watch
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - get
+      - list
+      - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -25,3 +25,19 @@ rules:
       - get
       - list
       - watch
+---
+{{- if .Values.crossplane.clusterAdminPermissions }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    rbac.crossplane.io/aggregate-to-crossplane: "true"
+  name: crossplane-cluster-admin
+rules:
+  - apiGroups:
+      - '*'
+    resources:
+      - '*'
+    verbs:
+      - '*'
+{{- end }}
