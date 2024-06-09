@@ -49,7 +49,7 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
       forProvider: {
         region: $.region,
         clusterName: cluster.metadata.name,
-        subnetIds: [
+        subnets: [
           if std.type(subnet) == 'object' then subnet.status.atProvider.subnetId else subnet
           for subnet in subnets
         ],
