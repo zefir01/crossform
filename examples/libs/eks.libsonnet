@@ -26,7 +26,7 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
             if std.type(subnet) == 'object' then subnet.status.atProvider.subnetId else subnet
             for subnet in subnets
           ],
-          securityGroupId: [
+          securityGroupIds: [
             if std.type(sg) == 'object' then sg.status.atProvider.SecurityGroupID else sg
             for sg in securityGroups
           ],
