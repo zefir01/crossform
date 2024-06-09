@@ -121,7 +121,7 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
     groups: groups,
   },
 
-  awsAuth(name, cluster, k8sProviderConfig, mapUsers=[], mapRoles=[])::
+  awsAuth(name, nodeRole, k8sProviderConfig, mapUsers=[], mapRoles=[])::
     local k8s = (import '../libs/k8s.libsonnet').withProviderConfig(k8sProviderConfig.metadata.name);
     lib.resource('aws-auth-'+name, k8s.object(name+nameSuffix, {
       apiVersion: 'v1',
@@ -138,7 +138,7 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
               'system:nodes',
             ],
             username: 'system:node:{{EC2PrivateDNSName}}',
-            rolearn: cluster.spec.forProvider.roleArn,
+            rolearn: nodeRole.status.atProvider.arn,
           },
         ] + mapRoles, quote_keys=false),
         [if std.length(mapUsers)>0 then 'mapUsers']: std.manifestYamlDoc(mapUsers, quote_keys=false),

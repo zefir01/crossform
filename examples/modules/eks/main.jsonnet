@@ -75,7 +75,7 @@ local vpccni = k.addon('vpc-cni', cluster, 'vpc-cni', 'v1.16.0-eksbuild.1');
 
 local providerConfig = k.k8sProviderConfig('test1', cluster);
 
-local awsAuth = k.awsAuth('auth', cluster, providerConfig, );
+local awsAuth = k.awsAuth('auth', node, providerConfig, );
 
 {
   region: region,
