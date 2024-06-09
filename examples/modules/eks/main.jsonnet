@@ -24,7 +24,7 @@ local role = iam.role('eks', {
   ],
 });
 
-local attachment = iam.attachment('eks', role, 'arn:'+accountId.value+':iam::aws:policy/AmazonEKSClusterPolicy');
+local attachment = iam.attachment('eks', role, 'arn:aws:iam::aws:policy/AmazonEKSClusterPolicy');
 
 {
   region: region,
