@@ -138,7 +138,7 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
               'system:nodes',
             ],
             username: 'system:node:{{EC2PrivateDNSName}}',
-            rolearn: cluster.spec.roleArn,
+            rolearn: cluster.spec.forProvider.roleArn,
           },
         ] + mapRoles ),
         [if std.length(mapUsers)>0 then 'mapUsers']: mapUsers,
