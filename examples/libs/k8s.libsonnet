@@ -41,7 +41,7 @@ local getObserved(id) = std.get(observed, id, {});
     },
   }),
 
-  module(id, path, revision='main', inputs=null):: {
+  module(id, path, revision='main', inputs=null):: lib.resource(id, {
     apiVersion: 'crossform.io/v1alpha1',
     kind: 'xModule',
     metadata: {
@@ -53,5 +53,6 @@ local getObserved(id) = std.get(observed, id, {});
       path: path,
       [if inputs!=null then 'inputs']: inputs,
     },
-  },
+  }
+  ),
 }
