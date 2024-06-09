@@ -203,6 +203,7 @@ local xr = std.extVar('xr');
         region: $.region,
         vpcId: if std.type(vpc)=='object' then vpc.status.atProvider.vpcId else vpc,
         groupName: xr.metadata.name+'-'+name,
+        description: 'Cluster communication with worker nodes',
         ingress: ingress,
         egress: egress,
         tags: [
