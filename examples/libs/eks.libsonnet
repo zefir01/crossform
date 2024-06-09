@@ -9,7 +9,7 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
   region: 'us-east-1',
   withRegion(region):: ${ region: region },
 
-  eks(name, subnets, role, securityGroups):: {
+  eks(name, subnets, role, securityGroups):: lib.resource('eks-cluster-'+name, {
     apiVersion: 'eks.aws.crossplane.io/v1beta1',
     kind: 'Cluster',
     metadata: {
@@ -37,5 +37,5 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
         name: $.providerConfig,
       },
     },
-  },
+  }),
 }
