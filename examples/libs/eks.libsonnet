@@ -122,7 +122,7 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
   },
 
   awsAuth(name, cluster, k8sProviderConfig, mapUsers=[], mapRoles=[])::
-    local k8s = (import '../libs/k8s.libsonnet').withProviderConfig(k8sProviderConfig);
+    local k8s = (import '../libs/k8s.libsonnet').withProviderConfig(k8sProviderConfig.metadata.name);
     lib.resource('aws-auth-'+name, k8s.object(name+nameSuffix, {
       apiVersion: 'v1',
       kind: 'ConfigMap',
