@@ -166,6 +166,8 @@ resource "helm_release" "crossform" {
   name       = "crossform"
   chart      = "../helm/crossform"
   namespace  = "crossplane-system"
+  reset_values=true
+  force_update=true
 }
 
 module "irsa_provider_aws" {

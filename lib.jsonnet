@@ -75,7 +75,10 @@ local isReady(res) =
         type: type,
         [if default!=null then 'default']: default,
         [if description!=null then 'description']: description,
-      } else schema,
+      } else schema+{
+        [if default!=null then 'default']: default,
+        [if description!=null then 'description']: description,
+      },
     },
     value: if default==null then xr.spec.inputs[name]
     else std.get(xr.spec.inputs, name, default),
