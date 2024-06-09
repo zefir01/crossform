@@ -7,14 +7,14 @@ repoServer:
     repository: zefir01/crossform
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: 0.0.13
+    tag: 0.0.14
 crossplane:
   installK8sLocalProvider: true
 function:
   install: true
   image:
     repository: index.docker.io/zefir01/proxy-function
-    tag: 0.0.13
+    tag: 0.0.14
 composition:
   install: true
 imagePullSecrets: []
