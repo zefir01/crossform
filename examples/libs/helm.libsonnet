@@ -1,7 +1,23 @@
 local lib = std.extVar('crossform');
 local xr = std.extVar('xr');
+local observed = std.extVar('observed');
 
 local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
+
+local getCondition(obj, type) =
+  local arr = [
+    i.status
+    for i in obj
+    if i.type==type
+  ];
+  if std.length(arr)==0 then "" else arr[0];
+
+local conditionsTrue(id) =
+  local o = std.get(observed, id, {});
+    std.objectHas(o, 'status')
+    && std.objectHas(o.status, 'conditions')
+    && getCondition(o.status.conditions, 'Healthy')=='True'
+    && getCondition(o.status.conditions, 'Installed')=='True';
 
 {
   provider():: lib.resource('provider-helm', {
@@ -20,7 +36,7 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
     },
   })+{
     crossform+: {
-      ready: true,
+      ready: conditionsTrue('provider-helm'),
     },
   },
 
