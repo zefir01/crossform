@@ -59,7 +59,7 @@ local test2 = k8s.object('test2', {
 );
 
 local xr = lib.resource('xr1', std.extVar('xr'));
-local input1 = lib.input('test1', 'string');
+local accountId = lib.input('accountId', 'string');
 
 local rds = lib.resource('rds1', {
   apiVersion: 'rds.aws.crossplane.io/v1alpha1',
@@ -121,7 +121,8 @@ local rdsSecret = k8s.object('rds-secret', {
 
 {
   providerConfig: k8sProviderConfig,
-  awsProviderConfig: awsProviderConfig
+  awsProviderConfig: awsProviderConfig,
+  accountId: accountId
   //test1: test1,
   //test2: test2,
   //request1: request1,

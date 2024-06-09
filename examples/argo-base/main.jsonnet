@@ -16,7 +16,7 @@ local revision = std.extVar('revision');
       revision: revision,
       path: 'examples/test2',
       inputs: {
-        test1: 'aaa',
+        accountId: std.extVar('accountId'),
       },
     },
   },

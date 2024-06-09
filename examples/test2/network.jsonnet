@@ -1,6 +1,5 @@
 local lib = std.extVar('crossform');
 local main = import 'main.jsonnet';
-local accountId = std.extVar('accountId');
 
 local k8s = (import '../libs/k8s.libsonnet').withProviderConfig(main.providerConfig.metadata.name);
 
@@ -14,6 +13,6 @@ local k8s = (import '../libs/k8s.libsonnet').withProviderConfig(main.providerCon
   eks: k8s.module('eks', 'examples/modules/eks', inputs={
     region: 'us-east-2',
     awsProviderConfig: main.awsProviderConfig.metadata.name,
-    accountId: accountId
+    accountId: main.accountId
   }),
 }
