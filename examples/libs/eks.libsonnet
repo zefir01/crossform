@@ -35,7 +35,7 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
         tags: [
           {
             key: 'Name',
-            value: xr.metadata.name+'-'+name,
+            value: name+nameSuffix,
           },
         ],
       },
@@ -76,4 +76,23 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
       },
     },
   }),
+
+  addon(name, cluster, addonName, addonVersion):: lib.resource('addon-'+name, {
+    apiVersion: 'eks.aws.crossplane.io/v1alpha1',
+    kind: 'Addon',
+    metadata: {
+      name: name+nameSuffix,
+    },
+    spec: {
+      forProvider: {
+        region: $.region,
+        addonName: addonName,
+        addonVersion: addonVersion,
+        clusterName: cluster.metadata.name,
+      },
+      [if $.providerConfig!=null then 'providerConfigRef']: {
+        name: $.providerConfig,
+      },
+    },
+  })
 }
