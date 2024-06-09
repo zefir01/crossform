@@ -18,7 +18,11 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
         name: 'provider-helm',
       },
     },
-  }),
+  })+{
+    crossform+: {
+      ready: true,
+    },
+  },
 
   runtimeConfig():: lib.resource('provider-helm-runtime-config', {
     apiVersion: 'pkg.crossplane.io/v1beta1',
@@ -33,7 +37,11 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
         },
       },
     },
-  }),
+  })+{
+    crossform+: {
+      ready: true,
+    },
+  },
 
   crb(k8sProviderConfig):: lib.resource('provider-helm-cluster-admin',
     local k8s = (import '../libs/k8s.libsonnet').withProviderConfig(k8sProviderConfig.metadata.name);
