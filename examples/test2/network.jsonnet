@@ -13,6 +13,6 @@ local k8s = (import '../libs/k8s.libsonnet').withProviderConfig(main.providerCon
   eks: k8s.module('eks', 'examples/modules/eks', inputs={
     region: 'us-east-2',
     awsProviderConfig: main.awsProviderConfig.metadata.name,
-    accountId: main.accountId
+    accountId: main.accountId.value
   }),
 }
