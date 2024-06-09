@@ -66,6 +66,8 @@ local eksSg = vpc.securityGroup('eks', vpcId.value, description='Eks cluster SG'
 local cluster = k.eks('test1', privateSubnets.value, eks, [eksSg]);
 local nodeGroup = k.nodeGroup('main', cluster, privateSubnets.value, node);
 
+local coredns=k.addon('coredns', cluster, 'coredns','v1.11.1-eksbuild.4');
+
 {
   region: region,
   awsProviderConfig: awsProviderConfig,
@@ -82,4 +84,5 @@ local nodeGroup = k.nodeGroup('main', cluster, privateSubnets.value, node);
   eksSg: eksSg,
   cluster: cluster,
   nodeGroup: nodeGroup,
+  coredns: coredns
 }
