@@ -140,8 +140,8 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
             username: 'system:node:{{EC2PrivateDNSName}}',
             rolearn: cluster.spec.forProvider.roleArn,
           },
-        ] + mapRoles ),
-        [if std.length(mapUsers)>0 then 'mapUsers']: std.manifestYamlDoc(mapUsers),
+        ] + mapRoles, quote_keys=false),
+        [if std.length(mapUsers)>0 then 'mapUsers']: std.manifestYamlDoc(mapUsers, quote_keys=false),
       },
     },
       orphan=true
