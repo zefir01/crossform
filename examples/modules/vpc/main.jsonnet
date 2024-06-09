@@ -60,4 +60,14 @@ local publicRouteTable = vpc.routeTable('public', [vpc.routeGateway('0.0.0.0/0',
     eipB.status.atProvider.publicIp,
     eipC.status.atProvider.publicIp,
   ]),
+  privateSubnets: lib.output('privateSubnets', [
+    privateSubnetA.status.atProvider.subnetId,
+    privateSubnetB.status.atProvider.subnetId,
+    privateSubnetC.status.atProvider.subnetId,
+  ]),
+  publicSubnets: lib.output('publicSubnets', [
+    publicSubnetA.status.atProvider.subnetId,
+    publicSubnetB.status.atProvider.subnetId,
+    publicSubnetC.status.atProvider.subnetId,
+  ]),
 }

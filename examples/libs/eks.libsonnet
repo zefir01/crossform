@@ -7,7 +7,7 @@ local xr = std.extVar('xr');
   region: 'us-east-1',
   withRegion(region):: ${ region: region },
 
-  eks(name, subnets)::{
+  eks(name, subnets, role, securityGroups):: {
     apiVersion: 'eks.aws.crossplane.io/v1beta1',
     kind: 'Cluster',
     metadata: {
@@ -16,19 +16,17 @@ local xr = std.extVar('xr');
     spec: {
       forProvider: {
         region: $.region,
-        roleArnRef: {
-          name: 'somerole',
-        },
+        roleArn: if std.type(role)=='object' then role.status.atProvider.arn else role,
         resourcesVpcConfig: {
           endpointPrivateAccess: true,
           endpointPublicAccess: true,
           subnetIds: [
-            subnet.status.atProvider.subnetId for subnet in subnets
+            if std.type(subnet) == 'object' then subnet.status.atProvider.subnetId else subnet
+            for subnet in subnets
           ],
-          securityGroupIdRefs: [
-            {
-              name: 'sample-cluster-sg',
-            }
+          securityGroupId: [
+            if std.type(sg) == 'object' then sg.status.atProvider.SecurityGroupID else sg
+            for sg in securityGroups
           ],
         },
         version: '1.21',
@@ -41,5 +39,5 @@ local xr = std.extVar('xr');
         name: 'example',
       },
     },
-  }
+  },
 }
