@@ -19,6 +19,45 @@ local publicSubnets = lib.input('privateSubnets', schema={
 }
 );
 
+local mapUsers = lib.input('mapUsers', default=[], schema={
+  type: 'array',
+  items: {
+    type: 'object',
+    properties: {
+      arn: {
+        type: 'string',
+      },
+      username: {
+        type: 'string',
+      },
+      groups: {
+        type: 'array',
+        items: {
+          type: 'string',
+        },
+      },
+    },
+  },
+});
+
+local mapRoles = lib.input('mapRoles', default=[], schema={
+  type: 'array',
+  items: {
+    type: 'object',
+    properties: {
+      arn: {
+        type: 'string',
+      },
+      groups: {
+        type: 'array',
+        items: {
+          type: 'string',
+        },
+      },
+    },
+  },
+});
+
 local iam = (import '../../libs/iam.libsonnet').withProviderConfig(awsProviderConfig.value);
 local vpc = (import '../../libs/vpc.libsonnet').withProviderConfig(awsProviderConfig.value).withRegion(region.value);
 local k = (import '../../libs/eks.libsonnet').withProviderConfig(awsProviderConfig.value).withRegion(region.value);
@@ -75,7 +114,7 @@ local vpccni = k.addon('vpc-cni', cluster, 'vpc-cni', 'v1.16.0-eksbuild.1');
 
 local providerConfig = k.k8sProviderConfig('test1', cluster);
 
-local awsAuth = k.awsAuth('auth', node, providerConfig, );
+local awsAuth = k.awsAuth('auth', node, providerConfig, mapUsers, mapRoles);
 
 {
   region: region,
@@ -99,4 +138,6 @@ local awsAuth = k.awsAuth('auth', node, providerConfig, );
   providerConfig: providerConfig,
   providerConfigName: lib.output('providerConfigName', providerConfig.metadata.name),
   awsAuth: awsAuth,
+  mapUsers: mapUsers,
+  mapRoles: mapRoles
 }
