@@ -131,7 +131,7 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
         namespace: 'kube-system',
       },
       data: {
-        mapRoles: std.toString([
+        mapRoles: std.manifestYamlDoc([
           {
             groups: [
               'system:bootstrappers',
@@ -141,7 +141,7 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
             rolearn: cluster.spec.forProvider.roleArn,
           },
         ] + mapRoles ),
-        [if std.length(mapUsers)>0 then 'mapUsers']: mapUsers,
+        [if std.length(mapUsers)>0 then 'mapUsers']: std.manifestYamlDoc(mapUsers),
       },
     },
       orphan=true
