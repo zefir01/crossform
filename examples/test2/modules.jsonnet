@@ -15,7 +15,7 @@ local k8s = (import '../libs/k8s.libsonnet').withProviderConfig(main.providerCon
     awsProviderConfig: main.awsProviderConfig.metadata.name,
     accountId: main.accountId.value,
     vpcId: $.network.status.outputs.vpcId,
-    privateSubnets: $.network.status.output.privateSubnets,
-    publicSubnets: $.network.status.output.publicSubnets,
+    privateSubnets: $.network.status.outputs.privateSubnets,
+    publicSubnets: $.network.status.outputs.publicSubnets,
   }),
 }
