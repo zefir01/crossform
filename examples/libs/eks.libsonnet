@@ -44,4 +44,36 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
       },
     },
   }),
+
+  nodeGroup(name, cluster, subnets, role):: lib.resource('node-group-'+name, {
+    apiVersion: 'eks.aws.crossplane.io/v1alpha1',
+    kind: 'NodeGroup',
+    metadata: {
+      name: name+nameSuffix,
+    },
+    spec: {
+      forProvider: {
+        region: $.region,
+        clusterName: cluster.metadata.name,
+        subnetIds: [
+          if std.type(subnet) == 'object' then subnet.status.atProvider.subnetId else subnet
+          for subnet in subnets
+        ],
+        nodeRole: if std.type(role)=='object' then role.status.atProvider.arn else role,
+        scalingConfig: {
+          desiredSize: 1,
+          maxSize: 1,
+          minSize: 1,
+        },
+        updateConfig: {
+          maxUnavailablePercentage: 50,
+          force: true,
+        },
+        instanceTypes:['t3.medium']
+      },
+      [if $.providerConfig!=null then 'providerConfigRef']: {
+        name: $.providerConfig,
+      },
+    },
+  }),
 }
