@@ -15,7 +15,7 @@ local getObserved(id) = std.get(observed, id, {});
     apiVersion: 'kubernetes.crossplane.io/v1alpha2',
     kind: 'Object',
     metadata: {
-      [if name!=null then 'name']: name,
+      [if name!=null then 'name']: xr.metadata.name+'-'+name,
     },
     spec: {
       forProvider: {
@@ -41,7 +41,7 @@ local getObserved(id) = std.get(observed, id, {});
     },
   }),
 
-  module(id, path, revision='main', inputs=null):: $.object(id, {
+  module(id, path, revision='main', inputs=null):: {
     apiVersion: 'crossform.io/v1alpha1',
     kind: 'xModule',
     metadata: {
@@ -53,6 +53,5 @@ local getObserved(id) = std.get(observed, id, {});
       path: path,
       [if inputs!=null then 'inputs']: inputs,
     },
-  }
-  ),
+  },
 }
