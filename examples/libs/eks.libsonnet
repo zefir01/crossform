@@ -1,6 +1,8 @@
 local lib = std.extVar('crossform');
 local xr = std.extVar('xr');
 
+local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
+
 {
   providerConfig: null,
   withProviderConfig(name):: ${ providerConfig: name },
@@ -11,7 +13,7 @@ local xr = std.extVar('xr');
     apiVersion: 'eks.aws.crossplane.io/v1beta1',
     kind: 'Cluster',
     metadata: {
-      name: xr.metadata.name+'-'+name,
+      name: name+nameSuffix,
     },
     spec: {
       forProvider: {
@@ -29,14 +31,10 @@ local xr = std.extVar('xr');
             for sg in securityGroups
           ],
         },
-        version: '1.21',
+        version: '1.29',
       },
-      writeConnectionSecretToRef: {
-        name: 'cluster-conn',
-        namespace: 'default',
-      },
-      providerConfigRef: {
-        name: 'example',
+      [if $.providerConfig!=null then 'providerConfigRef']: {
+        name: $.providerConfig,
       },
     },
   },

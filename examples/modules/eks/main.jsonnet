@@ -4,9 +4,24 @@ local region = lib.input('region', 'string');
 local awsProviderConfig = lib.input('awsProviderConfig', 'string');
 local accountId = lib.input('accountId', 'string');
 local vpcId = lib.input('vpcId', 'string');
+local privateSubnets = lib.input('privateSubnets', schema={
+  type: 'array',
+  items: {
+    type: 'string',
+  },
+}
+);
+local publicSubnets = lib.input('privateSubnets', schema={
+  type: 'array',
+  items: {
+    type: 'string',
+  },
+}
+);
 
 local iam = (import '../../libs/iam.libsonnet').withProviderConfig(awsProviderConfig.value);
 local vpc = (import '../../libs/vpc.libsonnet').withProviderConfig(awsProviderConfig.value).withRegion(region.value);
+local k = (import '../../libs/eks.libsonnet').withProviderConfig(awsProviderConfig.value).withRegion(region.value);
 
 local eks = iam.role('eks', {
   Version: '2012-10-17',
@@ -48,16 +63,21 @@ local nodeAttachment3 = iam.attachment('node3', node, 'arn:aws:iam::aws:policy/A
 
 local eksSg = vpc.securityGroup('eks', vpcId.value, description='Eks cluster SG');
 
+local cluster = k.eks('test1', privateSubnets, eks, [eksSg]);
+
 {
   region: region,
   awsProviderConfig: awsProviderConfig,
   accountId: accountId,
   vpcId: vpcId,
+  privateSubnets: privateSubnets,
+  publicSubnets: publicSubnets,
   eks: eks,
   node: node,
   eksAttachment: eksAttachment,
   nodeAttachment1: nodeAttachment1,
   nodeAttachment2: nodeAttachment2,
   nodeAttachment3: nodeAttachment3,
-  eksSg: eksSg
+  eksSg: eksSg,
+  cluster: cluster,
 }
