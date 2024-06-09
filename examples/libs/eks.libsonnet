@@ -33,6 +33,10 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
         },
         version: '1.29',
       },
+      writeConnectionSecretToRef: {
+        name: 'cluster-conn',
+        namespace: 'default',
+      },
       [if $.providerConfig!=null then 'providerConfigRef']: {
         name: $.providerConfig,
       },
@@ -63,7 +67,7 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
           maxUnavailablePercentage: 50,
           force: true,
         },
-        instanceTypes:['t3.medium']
+        instanceTypes: ['t3.medium'],
       },
       [if $.providerConfig!=null then 'providerConfigRef']: {
         name: $.providerConfig,
@@ -88,5 +92,5 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
         name: $.providerConfig,
       },
     },
-  })
+  }),
 }
