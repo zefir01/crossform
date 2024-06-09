@@ -64,11 +64,16 @@ local nodeAttachment4 = iam.attachment('node4', node, 'arn:aws:iam::aws:policy/A
 
 local eksSg = vpc.securityGroup('eks', vpcId.value, description='Eks cluster SG');
 
-local cluster = k.eks('test1', privateSubnets.value, eks, [eksSg]);
+local cluster = k.eks('test1', privateSubnets.value, eks, [eksSg], connectionSecret={
+  name: 'cluster-conn',
+  namespace: 'default',
+});
 local nodeGroup = k.nodeGroup('main', cluster, privateSubnets.value, node);
 
 local coredns = k.addon('coredns', cluster, 'coredns', 'v1.11.1-eksbuild.4');
 local vpccni = k.addon('vpc-cni', cluster, 'vpc-cni', 'v1.16.0-eksbuild.1');
+
+local providerConfig=k.providerConfig('test1', cluster);
 
 {
   region: region,
@@ -89,4 +94,6 @@ local vpccni = k.addon('vpc-cni', cluster, 'vpc-cni', 'v1.16.0-eksbuild.1');
   nodeGroup: nodeGroup,
   coredns: coredns,
   vpccni: vpccni,
+  providerConfig: providerConfig,
+  providerConfigName: lib.output('providerConfigName', providerConfig.metadata.name)
 }

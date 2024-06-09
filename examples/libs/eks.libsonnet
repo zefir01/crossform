@@ -9,7 +9,7 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
   region: 'us-east-1',
   withRegion(region):: ${ region: region },
 
-  eks(name, subnets, role, securityGroups):: lib.resource('eks-cluster-'+name, {
+  eks(name, subnets, role, securityGroups, connectionSecret=null):: lib.resource('eks-cluster-'+name, {
     apiVersion: 'eks.aws.crossplane.io/v1beta1',
     kind: 'Cluster',
     metadata: {
@@ -33,10 +33,7 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
         },
         version: '1.29',
       },
-      writeConnectionSecretToRef: {
-        name: 'cluster-conn',
-        namespace: 'default',
-      },
+      [if connectionSecret!=null then 'writeConnectionSecretToRef']: connectionSecret,
       [if $.providerConfig!=null then 'providerConfigRef']: {
         name: $.providerConfig,
       },
@@ -90,6 +87,24 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
       },
       [if $.providerConfig!=null then 'providerConfigRef']: {
         name: $.providerConfig,
+      },
+    },
+  }),
+
+  providerConfig(name, eks):: lib.resource('k8s-providerConfig-'+name, {
+    apiVersion: 'kubernetes.crossplane.io/v1alpha1',
+    kind: 'ProviderConfig',
+    metadata: {
+      name: name+nameSuffix,
+    },
+    spec: {
+      credentials: {
+        source: 'Secret',
+        secretRef: {
+          namespace: eks.spec.writeConnectionSecretToRef.namespace,
+          name: eks.spec.writeConnectionSecretToRef.name,
+          key: 'kubeconfig',
+        },
       },
     },
   }),
