@@ -66,7 +66,9 @@ local eksSg = vpc.securityGroup('eks', vpcId.value, description='Eks cluster SG'
 local cluster = k.eks('test1', privateSubnets.value, eks, [eksSg]);
 local nodeGroup = k.nodeGroup('main', cluster, privateSubnets.value, node);
 
-local coredns=k.addon('coredns', cluster, 'coredns','v1.11.1-eksbuild.4');
+local coredns = k.addon('coredns', cluster, 'coredns', 'v1.11.1-eksbuild.4');
+local kubeproxy = k.addon('kubeproxy', cluster, 'kubeproxy', 'v1.29.0-eksbuild.1');
+local vpccni = k.addon('vpc-cni', cluster, 'vpc-cni', 'v1.16.0-eksbuild.1');
 
 {
   region: region,
@@ -84,5 +86,7 @@ local coredns=k.addon('coredns', cluster, 'coredns','v1.11.1-eksbuild.4');
   eksSg: eksSg,
   cluster: cluster,
   nodeGroup: nodeGroup,
-  coredns: coredns
+  coredns: coredns,
+  kubeproxy: kubeproxy,
+  vpccni: vpccni,
 }
