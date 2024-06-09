@@ -1,6 +1,8 @@
 local lib = std.extVar('crossform');
 local xr = std.extVar('xr');
 
+local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
+
 {
   providerConfig: null,
   withProviderConfig(name):: ${ providerConfig: name },
@@ -11,7 +13,7 @@ local xr = std.extVar('xr');
     apiVersion: 'ec2.aws.crossplane.io/v1beta1',
     kind: 'VPC',
     metadata: {
-      name: xr.metadata.name+'-'+name,
+      name: name+nameSuffix,
     },
     spec: {
       forProvider: {
@@ -37,7 +39,7 @@ local xr = std.extVar('xr');
     apiVersion: 'ec2.aws.crossplane.io/v1beta1',
     kind: 'Subnet',
     metadata: {
-      name: xr.metadata.name+'-'+name,
+      name: name+nameSuffix,
     },
     spec: {
       forProvider: {
@@ -63,7 +65,7 @@ local xr = std.extVar('xr');
     apiVersion: 'ec2.aws.crossplane.io/v1beta1',
     kind: 'Address',
     metadata: {
-      name: xr.metadata.name+'-'+name,
+      name: name+nameSuffix,
     },
     spec: {
       forProvider: {
@@ -86,7 +88,7 @@ local xr = std.extVar('xr');
     apiVersion: 'ec2.aws.crossplane.io/v1beta1',
     kind: 'NATGateway',
     metadata: {
-      name: xr.metadata.name+'-'+name,
+      name: name+nameSuffix,
     },
     spec: {
       forProvider: {
@@ -96,7 +98,7 @@ local xr = std.extVar('xr');
         tags: [
           {
             key: 'Name',
-            value: xr.metadata.name+'-'+name,
+            value: name+nameSuffix,
           },
         ],
       },
@@ -110,7 +112,7 @@ local xr = std.extVar('xr');
     apiVersion: 'ec2.aws.crossplane.io/v1beta1',
     kind: 'InternetGateway',
     metadata: {
-      name: xr.metadata.name+'-'+name,
+      name: name+nameSuffix,
     },
     spec: {
       forProvider: {
@@ -119,7 +121,7 @@ local xr = std.extVar('xr');
         tags: [
           {
             key: 'Name',
-            value: xr.metadata.name+'-'+name,
+            value: name+nameSuffix,
           },
         ],
       },
@@ -143,7 +145,7 @@ local xr = std.extVar('xr');
     apiVersion: 'ec2.aws.crossplane.io/v1beta1',
     kind: 'RouteTable',
     metadata: {
-      name: xr.metadata.name+'-'+name,
+      name: name+nameSuffix,
     },
     spec: {
       forProvider: {
@@ -159,7 +161,7 @@ local xr = std.extVar('xr');
         tags: [
           {
             key: 'Name',
-            value: xr.metadata.name+'-'+name,
+            value: name+nameSuffix,
           },
         ],
       },
@@ -197,7 +199,7 @@ local xr = std.extVar('xr');
     apiVersion: 'ec2.aws.crossplane.io/v1beta1',
     kind: 'SecurityGroup',
     metadata: {
-      name: xr.metadata.name+'-'+name,
+      name: name+nameSuffix,
     },
     spec: {
       forProvider: {

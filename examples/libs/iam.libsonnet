@@ -1,6 +1,8 @@
 local lib = std.extVar('crossform');
 local xr = std.extVar('xr');
 
+local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
+
 {
   providerConfig: null,
   withProviderConfig(name):: ${ providerConfig: name },
@@ -9,7 +11,7 @@ local xr = std.extVar('xr');
     apiVersion: 'iam.aws.crossplane.io/v1beta1',
     kind: 'Role',
     metadata: {
-      name: xr.metadata.name+'-'+name,
+      name: name+nameSuffix,
     },
     spec: {
       forProvider: {
@@ -17,7 +19,7 @@ local xr = std.extVar('xr');
         tags: [
           {
             key: 'Name',
-            value: xr.metadata.name+'-'+name,
+            value: name+nameSuffix,
           },
         ],
       },
@@ -31,7 +33,7 @@ local xr = std.extVar('xr');
     apiVersion: 'iam.aws.crossplane.io/v1beta1',
     kind: 'RolePolicyAttachment',
     metadata: {
-      name: xr.metadata.name+'-'+name,
+      name: name+nameSuffix,
     },
     spec: {
       forProvider: {
@@ -48,11 +50,11 @@ local xr = std.extVar('xr');
     apiVersion: 'iam.aws.crossplane.io/v1beta1',
     kind: 'RolePolicyAttachment',
     metadata: {
-      name: xr.metadata.name+'-'+name,
+      name: name+nameSuffix,
     },
     spec: {
       forProvider: {
-        name: xr.metadata.name+'-'+name,
+        name: name+nameSuffix,
         document: std.toString(document),
       },
       [if $.providerConfig!=null then 'providerConfigRef']: {
