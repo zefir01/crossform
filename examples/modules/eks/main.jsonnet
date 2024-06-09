@@ -46,7 +46,7 @@ local nodeAttachment1 = iam.attachment('node1', node, 'arn:aws:iam::aws:policy/A
 local nodeAttachment2 = iam.attachment('node2', node, 'arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly');
 local nodeAttachment3 = iam.attachment('node3', node, 'arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy');
 
-local eksSg = vpc.securityGroup('eks', vpcId.value);
+local eksSg = vpc.securityGroup('eks', vpcId.value, description='Eks cluster SG');
 
 {
   region: region,

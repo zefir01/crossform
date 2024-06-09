@@ -191,7 +191,8 @@ local xr = std.extVar('xr');
           },
         ],
       },
-    ]
+    ],
+    description='empty'
   ):: lib.resource('security-group-'+name, {
     apiVersion: 'ec2.aws.crossplane.io/v1beta1',
     kind: 'SecurityGroup',
@@ -203,7 +204,7 @@ local xr = std.extVar('xr');
         region: $.region,
         vpcId: if std.type(vpc)=='object' then vpc.status.atProvider.vpcId else vpc,
         groupName: xr.metadata.name+'-'+name,
-        description: 'Cluster communication with worker nodes',
+        description: description,
         ingress: ingress,
         egress: egress,
         tags: [
