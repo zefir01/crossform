@@ -91,7 +91,7 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
     },
   }),
 
-  providerConfig(name, cluster):: lib.resource('k8s-providerConfig-'+name, {
+  k8sProviderConfig(name, cluster):: lib.resource('k8s-providerConfig-'+name, {
     apiVersion: 'kubernetes.crossplane.io/v1alpha1',
     kind: 'ProviderConfig',
     metadata: {
