@@ -169,6 +169,9 @@ func (e *jsonnetExecutor) ValidateInputs(inputs map[string]*crossform, input map
 	if err != nil {
 		return err
 	}
+
+	e.log.Warn().Str("schema", string(j)).Msg("Module schema")
+
 	if err := compiler.AddResource("https://crossform.io/inputs", strings.NewReader(string(j))); err != nil {
 		return err
 	}
