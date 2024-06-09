@@ -63,7 +63,7 @@ local nodeAttachment3 = iam.attachment('node3', node, 'arn:aws:iam::aws:policy/A
 
 local eksSg = vpc.securityGroup('eks', vpcId.value, description='Eks cluster SG');
 
-local cluster = k.eks('test1', privateSubnets, eks, [eksSg]);
+local cluster = k.eks('test1', privateSubnets.value, eks, [eksSg]);
 
 {
   region: region,
