@@ -39,8 +39,8 @@ resource "bcrypt_hash" "argo_pass" {
 
 data "aws_iam_policy_document" "assume" {
   statement {
-    sid       = "AssumeRole"
-    actions   = ["sts:AssumeRole", "sts:AssumeRoleWithWebIdentity"]
+    sid = "AssumeRole"
+    actions = ["sts:AssumeRole", "sts:AssumeRoleWithWebIdentity"]
     resources = ["*"]
   }
 }
@@ -60,12 +60,12 @@ module "irsa_argo" {
   sa_wildcard            = true
   oidc_url               = var.oidc_url
   oidc_arn               = var.oidc_arn
-  policy_arns            = [aws_iam_policy.argo.arn]
+  policy_arns = [aws_iam_policy.argo.arn]
   allow_self_assume_role = true
 }
 
 resource "helm_release" "argo-cd" {
-  depends_on       = [kubernetes_config_map.argo_ssh, kubernetes_secret_v1.argo_wf_sso_secret]
+  depends_on = [kubernetes_config_map.argo_ssh, kubernetes_secret_v1.argo_wf_sso_secret]
   name             = "argo-cd"
   chart            = "argo-cd"
   version          = "6.4.1"
@@ -490,7 +490,7 @@ resource "kubernetes_manifest" "argo_base" {
   manifest = {
     apiVersion = "argoproj.io/v1alpha1"
     kind       = "Application"
-    metadata   = {
+    metadata = {
       annotations = {
         "argocd.argoproj.io/sync-options" = "SkipDryRunOnMissingResource=true"
       }
@@ -504,7 +504,7 @@ resource "kubernetes_manifest" "argo_base" {
       }
       ignoreDifferences = [
         {
-          group        = "datadoghq.com"
+          group = "datadoghq.com"
           jsonPointers = [
             "/spec/tags",
           ]
@@ -512,7 +512,7 @@ resource "kubernetes_manifest" "argo_base" {
         },
       ]
       project = "default"
-      source  = {
+      source = {
         directory = {
           jsonnet = {
             extVars = [
@@ -523,6 +523,10 @@ resource "kubernetes_manifest" "argo_base" {
               {
                 name  = "revision",
                 value = var.argo_branch
+              },
+              {
+                name  = "accountId",
+                value = data.aws_caller_identity.current.account_id
               }
             ]
           }
@@ -613,13 +617,13 @@ resource "kubernetes_cluster_role_v1" "argo_server" {
 
   rule {
     api_groups = [""]
-    resources  = ["events"]
-    verbs      = ["create"]
+    resources = ["events"]
+    verbs = ["create"]
   }
   rule {
     api_groups = ["argoproj.io"]
-    resources  = ["applications"]
-    verbs      = ["create", "delete", "update", "patch"]
+    resources = ["applications"]
+    verbs = ["create", "delete", "update", "patch"]
   }
 }
 
@@ -651,13 +655,13 @@ resource "kubernetes_cluster_role_v1" "argo_notification" {
 
   rule {
     api_groups = [""]
-    resources  = ["secrets", "configmaps"]
-    verbs      = ["get", "list", "watch"]
+    resources = ["secrets", "configmaps"]
+    verbs = ["get", "list", "watch"]
   }
   rule {
     api_groups = ["argoproj.io"]
-    resources  = ["applications"]
-    verbs      = ["get", "list", "watch", "update", "patch"]
+    resources = ["applications"]
+    verbs = ["get", "list", "watch", "update", "patch"]
   }
 }
 
@@ -686,7 +690,7 @@ module "eks-kubeconfig" {
 resource "null_resource" "patch_default_project" {
   depends_on = [helm_release.argo-cd]
   provisioner "local-exec" {
-    command     = "kubectl -n argo patch --type=merge AppProject default -p '{\"spec\":{\"sourceNamespaces\":[\"*\"]}}' --kubeconfig <(echo ${base64encode(module.eks-kubeconfig.kubeconfig)} | base64 -d)"
+    command = "kubectl -n argo patch --type=merge AppProject default -p '{\"spec\":{\"sourceNamespaces\":[\"*\"]}}' --kubeconfig <(echo ${base64encode(module.eks-kubeconfig.kubeconfig)} | base64 -d)"
     interpreter = ["/bin/bash", "-c"]
   }
 }
@@ -696,7 +700,7 @@ resource "kubernetes_secret_v1" "argo_repo" {
   metadata {
     name      = "argocd-repo"
     namespace = "argo"
-    labels    = {
+    labels = {
       "argocd.argoproj.io/secret-type" = "repository"
     }
   }

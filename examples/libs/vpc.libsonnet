@@ -168,4 +168,54 @@ local xr = std.extVar('xr');
       },
     },
   }),
+
+  securityGroup(
+    name,
+    vpc,
+    ingress=[
+      {
+        ipProtocol: '-1',
+        ipRanges: [
+          {
+            cidrIp: '0.0.0.0/0',
+          },
+        ],
+      },
+    ],
+    egress=[
+      {
+        ipProtocol: '-1',
+        ipRanges: [
+          {
+            cidrIp: '0.0.0.0/0',
+          },
+        ],
+      },
+    ]
+  ):: lib.resource('security-group-'+name, {
+    apiVersion: 'ec2.aws.crossplane.io/v1beta1',
+    kind: 'SecurityGroup',
+    metadata: {
+      name: xr.metadata.name+'-'+name,
+    },
+    spec: {
+      forProvider: {
+        region: $.region,
+        vpcId: vpc.status.atProvider.vpcId,
+        groupName: xr.metadata.name+'-'+name,
+        ingress: ingress,
+        egress: egress,
+        tags: [
+          {
+            key: 'Name',
+            value: xr.metadata.name+'-'+name,
+          },
+        ],
+      },
+      [if $.providerConfig!=null then 'providerConfigRef']: {
+        name: $.providerConfig,
+      },
+    },
+  }
+  ),
 }

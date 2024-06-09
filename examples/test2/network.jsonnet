@@ -1,31 +1,19 @@
 local lib = std.extVar('crossform');
+local main = import 'main.jsonnet';
+local accountId = std.extVar('accountId');
 
-local awsProviderConfig = lib.resource('providerConfigAws', {
-  apiVersion: 'aws.crossplane.io/v1beta1',
-  kind: 'ProviderConfig',
-  metadata: {
-    name: 'default',
-  },
-  spec: {
-    credentials: {
-      source: 'InjectedIdentity',
-    },
-  },
-})+{
-  crossform+:: {
-    ready: true,
-  },
-};
-
-
-local k8s = (import '../libs/k8s.libsonnet').withProviderConfig('kubernetes-local');
+local k8s = (import '../libs/k8s.libsonnet').withProviderConfig(main.providerConfig.metadata.name);
 
 
 {
-  awsProviderConfig: awsProviderConfig,
   network: k8s.module('vpc', 'examples/modules/vpc', inputs={
     region: 'us-east-2',
-    awsProviderConfig: 'default',
+    awsProviderConfig: main.awsProviderConfig.metadata.name,
     cidr: '10.100.0.0/16',
+  }),
+  eks: k8s.module('eks', 'examples/modules/eks', inputs={
+    region: 'us-east-2',
+    awsProviderConfig: main.awsProviderConfig.metadata.name,
+    accountId: accountId
   }),
 }

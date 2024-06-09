@@ -15,6 +15,23 @@ local k8sProviderConfig = lib.resource('providerConfig', {
   },
 });
 
+local awsProviderConfig = lib.resource('providerConfigAws', {
+  apiVersion: 'aws.crossplane.io/v1beta1',
+  kind: 'ProviderConfig',
+  metadata: {
+    name: 'default',
+  },
+  spec: {
+    credentials: {
+      source: 'InjectedIdentity',
+    },
+  },
+})+{
+  crossform+:: {
+    ready: true,
+  },
+};
+
 local k8s = (import '../libs/k8s.libsonnet').withProviderConfig(k8sProviderConfig.metadata.name);
 
 local test1 = k8s.object('test1', {
@@ -104,6 +121,7 @@ local rdsSecret = k8s.object('rds-secret', {
 
 {
   providerConfig: k8sProviderConfig,
+  awsProviderConfig: awsProviderConfig
   //test1: test1,
   //test2: test2,
   //request1: request1,
