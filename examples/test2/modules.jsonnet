@@ -17,5 +17,12 @@ local k8s = (import '../libs/k8s.libsonnet').withProviderConfig(main.providerCon
     vpcId: $.network.status.outputs.vpcId,
     privateSubnets: $.network.status.outputs.privateSubnets,
     publicSubnets: $.network.status.outputs.publicSubnets,
+    mapUsers: [
+      {
+        arn: 'arn:aws:iam::482235484697:user/peter.stukalov@dr.paygears.com',
+        username: 'peter.stukalov',
+        groups: ['system:masters'],
+      },
+    ],
   }),
 }
