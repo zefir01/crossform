@@ -32,12 +32,6 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
           ],
         },
         version: '1.29',
-        tags: [
-          {
-            key: 'Name',
-            value: name+nameSuffix,
-          },
-        ],
       },
       [if $.providerConfig!=null then 'providerConfigRef']: {
         name: $.providerConfig,
