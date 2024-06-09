@@ -89,6 +89,6 @@ local vpccni = k.addon('vpc-cni', cluster, 'vpc-cni', 'v1.16.0-eksbuild.1');
   cluster: cluster,
   nodeGroup: nodeGroup,
   coredns: coredns,
-  //kubeproxy: kubeproxy,
-  //vpccni: vpccni,
+  kubeproxy: kubeproxy,
+  vpccni: vpccni,
 }
