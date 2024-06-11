@@ -91,8 +91,8 @@ local conditionsTrue(id) =
       credentials: {
         source: 'Secret',
         secretRef: {
-          name: cluster.spec.forProvider.writeConnectionSecretToRef.name,
-          namespace: cluster.spec.forProvider.writeConnectionSecretToRef.namespace,
+          name: cluster.spec.writeConnectionSecretToRef.name,
+          namespace: cluster.spec.writeConnectionSecretToRef.namespace,
           key: 'kubeconfig',
         },
       },
