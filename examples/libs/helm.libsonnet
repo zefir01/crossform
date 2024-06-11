@@ -110,7 +110,7 @@ local conditionsTrue(id) =
     apiVersion: 'helm.crossplane.io/v1beta1',
     kind: 'Release',
     metadata: {
-      name: 'wordpress-example',
+      name: name+nameSuffix,
     },
     spec: {
       forProvider: {
