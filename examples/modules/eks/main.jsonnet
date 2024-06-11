@@ -1,5 +1,7 @@
 local lib = std.extVar('crossform');
 
+local helm = import '../../libs/helm.libsonnet';
+
 local region = lib.input('region', 'string');
 local awsProviderConfig = lib.input('awsProviderConfig', 'string');
 local accountId = lib.input('accountId', 'string');
@@ -139,5 +141,7 @@ local awsAuth = k.awsAuth('auth', node, providerConfig, mapUsers.value, mapRoles
   providerConfigName: lib.output('providerConfigName', providerConfig.metadata.name),
   awsAuth: awsAuth,
   mapUsers: mapUsers,
-  mapRoles: mapRoles
+  mapRoles: mapRoles,
+  helmProviderConfig: helm.providerConfig('eks', cluster),
+  helmProviderConfigName: lib.output('helmProviderConfigName', $.helmProviderConfig.metadata.name),
 }

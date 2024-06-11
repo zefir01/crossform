@@ -80,4 +80,22 @@ local conditionsTrue(id) =
         apiGroup: 'rbac.authorization.k8s.io',
       },
     })),
+
+  providerConfig(name, cluster):: lib.resource('helm-provider-config-'+name, {
+    apiVersion: 'helm.crossplane.io/v1beta1',
+    kind: 'ProviderConfig',
+    metadata: {
+      name: name+nameSuffix,
+    },
+    spec: {
+      credentials: {
+        source: 'Secret',
+        secretRef: {
+          name: cluster.spec.forProvider.writeConnectionSecretToRef.name,
+          namespace: cluster.spec.forProvider.writeConnectionSecretToRef.namespace,
+          key: 'kubeconfig',
+        },
+      },
+    },
+  }),
 }

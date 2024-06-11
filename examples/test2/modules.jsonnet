@@ -2,6 +2,7 @@ local lib = std.extVar('crossform');
 local main = import 'main.jsonnet';
 
 local k8s = (import '../libs/k8s.libsonnet').withProviderConfig(main.providerConfig.metadata.name);
+local helm = import '../libs/helm.libsonnet';
 
 
 {
@@ -25,4 +26,5 @@ local k8s = (import '../libs/k8s.libsonnet').withProviderConfig(main.providerCon
       },
     ],
   }),
+  helmProviderConfig: helm.providerConfig('eks', )
 }
