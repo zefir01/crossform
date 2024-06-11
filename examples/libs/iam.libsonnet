@@ -37,7 +37,7 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
     },
     spec: {
       forProvider: {
-        policyArn: if std.type(policy)=='string' then policy else policy.status.atProvider.policyARN,
+        policyArn: if std.type(policy)=='string' then policy else policy.status.atProvider.arn,
         roleName: role.metadata.name,
       },
       [if $.providerConfig!=null then 'providerConfigRef']: {
