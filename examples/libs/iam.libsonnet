@@ -48,7 +48,7 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
 
   policy(name, document):: lib.resource('policy-'+name, {
     apiVersion: 'iam.aws.crossplane.io/v1beta1',
-    kind: 'RolePolicyAttachment',
+    kind: 'Policy',
     metadata: {
       name: name+nameSuffix,
     },
