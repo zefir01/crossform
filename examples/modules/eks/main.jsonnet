@@ -151,4 +151,5 @@ local getOidcArn(url) =
   oidcUrl: lib.output('oidcUrl', cluster.status.atProvider.identity.oidc.issuer),
   openIdConnectProvider: iam.openIdConnectProvider('eks', cluster),
   oidcArn: lib.output('oidcArn', getOidcArn(cluster.status.atProvider.identity.oidc.issuer)),
+  clusterName: lib.output('clusterName', cluster.metadata.name),
 }

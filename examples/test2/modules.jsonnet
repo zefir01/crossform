@@ -30,5 +30,6 @@ local k8s = (import '../libs/k8s.libsonnet').withProviderConfig(main.providerCon
     helmProviderConfig: $.eks.status.outputs.helmProviderConfigName,
     oidcUrl: $.eks.status.outputs.oidcUrl,
     oidcArn: $.eks.status.outputs.oidcArn,
+    clusterName: $.eks.status.outputs.clusterName,
   }),
 }

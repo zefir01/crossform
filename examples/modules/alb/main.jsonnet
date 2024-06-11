@@ -11,10 +11,12 @@ local helm = (import '../../libs/helm.libsonnet').withProviderConfigName(helmPro
   helmProviderConfigName: helmProviderConfigName,
   oidcUrl: lib.input('oidcUrl', 'string'),
   oidcArn: lib.input('oidcArn', 'string'),
+  clusterName: lib.input('clusterName', 'string'),
   policy: iam.policy('alb', importstr 'policy.json' ),
   role: iam.irsa('alb', 'aws-alb-ingress-controller', 'kube-system', $.oidcUrl.value, $.oidcArn.value),
   attachment: iam.attachment('alb', $.role, $.policy),
   release: helm.release('alb', 'aws-load-balancer-controller', 'https://aws.github.io/eks-charts', '1.8.1', 'kube-system', {
+    clusterName: $.clusterName.value,
     serviceAccount: {
       name: 'aws-alb-ingress-controller',
       annotations: {
