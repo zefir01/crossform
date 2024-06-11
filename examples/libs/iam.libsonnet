@@ -62,4 +62,26 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
       },
     },
   }),
+
+  openIdConnectProvider(name, cluster):: lib.resource('openIdConnectProvider-'+name, {
+    apiVersion: 'iam.aws.crossplane.io/v1beta1',
+    kind: 'OpenIDConnectProvider',
+    metadata: {
+      name: name+nameSuffix,
+    },
+    spec: {
+      forProvider: {
+        clientIDList: [
+          'sts.amazonaws.com'
+        ],
+        thumbprintList: [
+          '9e99a48a9960b14926bb7f3b02e22da2b0ab7280'
+        ],
+        url: cluster.status.atProvider.identity.oidc.issuer,
+      },
+      [if $.providerConfig!=null then 'providerConfigRef']: {
+        name: $.providerConfig,
+      },
+    },
+  })
 }

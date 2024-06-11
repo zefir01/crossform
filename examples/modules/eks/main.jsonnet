@@ -118,6 +118,10 @@ local providerConfig = k.k8sProviderConfig('test1', cluster);
 
 local awsAuth = k.awsAuth('auth', node, providerConfig, mapUsers.value, mapRoles.value);
 
+local getOidcArn(url) =
+  local t = std.strReplace(url, 'https://', '');
+    'arn:aws:iam::'+accountId.value+':oidc-provider/'+t;
+
 {
   region: region,
   awsProviderConfig: awsProviderConfig,
@@ -144,4 +148,7 @@ local awsAuth = k.awsAuth('auth', node, providerConfig, mapUsers.value, mapRoles
   mapRoles: mapRoles,
   helmProviderConfig: helm.providerConfig('eks', cluster),
   helmProviderConfigName: lib.output('helmProviderConfigName', $.helmProviderConfig.metadata.name),
+  oidcUrl: lib.output('oidcUrl', cluster.status.atProvider.identity.oidc.issuer),
+  openIdConnectProvider: iam.openIdConnectProvider('eks', cluster),
+  oidcArn: lib.output('oidcArn', getOidcArn(cluster.status.atProvider.identity.oidc.issuer)),
 }

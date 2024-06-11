@@ -97,5 +97,9 @@ local conditionsTrue(id) =
         },
       },
     },
-  }),
+  })+{
+    crossform+:: {
+      ready: true,
+    },
+  },
 }
