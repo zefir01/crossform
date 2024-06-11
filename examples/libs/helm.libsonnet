@@ -20,6 +20,9 @@ local conditionsTrue(id) =
     && getCondition(o.status.conditions, 'Installed')=='True';
 
 {
+  providerConfigName: null,
+  withProviderConfigName(name):: ${ providerConfigName: name },
+
   provider():: lib.resource('provider-helm', {
     apiVersion: 'pkg.crossplane.io/v1',
     kind: 'Provider',
@@ -102,4 +105,26 @@ local conditionsTrue(id) =
       ready: true,
     },
   },
+
+  release(name, chartName, repository, version, namespace, values):: lib.resource('helm-release-'+name, {
+    apiVersion: 'helm.crossplane.io/v1beta1',
+    kind: 'Release',
+    metadata: {
+      name: 'wordpress-example',
+    },
+    spec: {
+      forProvider: {
+        chart: {
+          name: chartName,
+          repository: repository,
+          version: version,
+        },
+        namespace: 'wordpress',
+        values: values,
+      },
+      [if $.providerConfigName!=null then 'providerConfigRef']: {
+        name: $.providerConfigName,
+      },
+    },
+  }),
 }

@@ -72,10 +72,10 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
     spec: {
       forProvider: {
         clientIDList: [
-          'sts.amazonaws.com'
+          'sts.amazonaws.com',
         ],
         thumbprintList: [
-          '9e99a48a9960b14926bb7f3b02e22da2b0ab7280'
+          '9e99a48a9960b14926bb7f3b02e22da2b0ab7280',
         ],
         url: cluster.status.atProvider.identity.oidc.issuer,
       },
@@ -83,5 +83,24 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
         name: $.providerConfig,
       },
     },
-  })
+  }),
+
+  irsa(name, saName, namespace, oidcUrl, oidcArn):: $.role(name, std.toString({
+    Version: '2012-10-17',
+    Statement: [
+      {
+        Effect: 'Allow',
+        Principal: {
+          Federated: oidcArn,
+        },
+        Action: 'sts:AssumeRoleWithWebIdentity',
+        Condition: {
+          StringEquals: {
+            [std.strReplace(oidcUrl, 'https://', '')+':aud']: 'sts.amazonaws.com',
+            [std.strReplace(oidcUrl, 'https://', '')+':sub']: 'system:serviceaccount:'+namespace+':'+saName,
+          },
+        },
+      },
+    ],
+  })),
 }
