@@ -2,6 +2,7 @@ local lib = std.extVar('crossform');
 
 local helm = import '../../libs/helm.libsonnet';
 
+local clusterName = lib.input('clusterName', 'string');
 local region = lib.input('region', 'string');
 local awsProviderConfig = lib.input('awsProviderConfig', 'string');
 local accountId = lib.input('accountId', 'string');
@@ -105,8 +106,8 @@ local nodeAttachment4 = iam.attachment('node4', node, 'arn:aws:iam::aws:policy/A
 
 local eksSg = vpc.securityGroup('eks', vpcId.value, description='Eks cluster SG');
 
-local cluster = k.eks('test1', privateSubnets.value, eks, [eksSg], connectionSecret={
-  name: 'cluster-conn',
+local cluster = k.eks(clusterName.value, privateSubnets.value, eks, [eksSg], connectionSecret={
+  name: 'cluster-'+clusterName.value,
   namespace: 'default',
 });
 local nodeGroup = k.nodeGroup('main', cluster, privateSubnets.value, node);
@@ -123,6 +124,7 @@ local getOidcArn(url) =
     'arn:aws:iam::'+accountId.value+':oidc-provider/'+t;
 
 {
+  clusterName: clusterName,
   region: region,
   awsProviderConfig: awsProviderConfig,
   accountId: accountId,

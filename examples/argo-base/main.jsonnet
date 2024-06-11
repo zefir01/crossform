@@ -2,24 +2,24 @@ local repo_url = std.extVar('repo_url');
 local revision = std.extVar('revision');
 
 [
-  {
-    apiVersion: 'crossform.io/v1alpha1',
-    kind: 'xModule',
-    metadata: {
-      name: 'test1',
-      annotations: {
-        'argocd.argoproj.io/sync-options': 'PrunePropagationPolicy=background',
-      },
-    },
-    spec: {
-      repository: repo_url,
-      revision: revision,
-      path: 'examples/test2',
-      inputs: {
-        accountId: std.extVar('accountId'),
-      },
-    },
-  },
+//  {
+//    apiVersion: 'crossform.io/v1alpha1',
+//    kind: 'xModule',
+//    metadata: {
+//      name: 'test1',
+//      annotations: {
+//        'argocd.argoproj.io/sync-options': 'PrunePropagationPolicy=background',
+//      },
+//    },
+//    spec: {
+//      repository: repo_url,
+//      revision: revision,
+//      path: 'examples/test2',
+//      inputs: {
+//        accountId: std.extVar('accountId'),
+//      },
+//    },
+//  },
 
   {
     apiVersion: 'v1',
@@ -28,4 +28,6 @@ local revision = std.extVar('revision');
       name: 'testttt',
     },
   },
+
+
 ]

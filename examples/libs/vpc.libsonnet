@@ -3,6 +3,14 @@ local xr = std.extVar('xr');
 
 local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
 
+local makeTags(obj) = [
+  {
+    key: name,
+    value: obj[name],
+  }
+  for name in std.objectFields(obj)
+];
+
 {
   providerConfig: null,
   withProviderConfig(name):: ${ providerConfig: name },
@@ -35,7 +43,7 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
     },
   }),
 
-  subnet(name, cidr, availabilityZone, vpc, private=true):: lib.resource('subnet-'+name, {
+  subnet(name, cidr, availabilityZone, vpc, private=true, tags={}):: lib.resource('subnet-'+name, {
     apiVersion: 'ec2.aws.crossplane.io/v1beta1',
     kind: 'Subnet',
     metadata: {
@@ -53,7 +61,7 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
             key: 'Name',
             value: xr.metadata.name+'-'+name,
           },
-        ],
+        ]+ makeTags(tags),
       },
       [if $.providerConfig!=null then 'providerConfigRef']: {
         name: $.providerConfig,

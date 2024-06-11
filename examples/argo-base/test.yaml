@@ -1,0 +1,44 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+  name: test
+  namespace: argo
+spec:
+  destination:
+    namespace: argo
+    server: https://kubernetes.default.svc
+  ignoreDifferences:
+    - group: datadoghq.com
+      jsonPointers:
+        - /spec/tags
+      kind: DatadogMonitor
+  project: default
+  source:
+    directory:
+      jsonnet:
+        extVars:
+          - name: repo_url
+            value: git@github.com:zefir01/crossform.git
+          - name: revision
+            value: main
+          - name: accountId
+            value: "482235484697"
+    path: examples/test
+    repoURL: git@github.com:zefir01/crossform.git
+    targetRevision: main
+  syncPolicy:
+    retry:
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+      limit: 7
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+      - RespectIgnoreDifferences=true
+      - ServerSideApply=true
+      - SkipDryRunOnMissingResource=true
+      - PrunePropagationPolicy=background

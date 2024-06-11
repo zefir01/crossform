@@ -119,7 +119,7 @@ local conditionsTrue(id) =
           repository: repository,
           version: version,
         },
-        namespace: 'wordpress',
+        namespace: namespace,
         values: values,
       },
       [if $.providerConfigName!=null then 'providerConfigRef']: {

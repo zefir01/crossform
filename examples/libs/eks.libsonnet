@@ -13,7 +13,7 @@ local nameSuffix = '-'+ std.split(xr.metadata.uid, '-')[0];
     apiVersion: 'eks.aws.crossplane.io/v1beta1',
     kind: 'Cluster',
     metadata: {
-      name: name+nameSuffix,
+      name: name,
     },
     spec: {
       forProvider: {

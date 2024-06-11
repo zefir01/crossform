@@ -4,8 +4,21 @@ local ip = import '../../libs/ip.libsonnet';
 local region = lib.input('region', 'string');
 local awsProviderConfig = lib.input('awsProviderConfig', 'string');
 local cidr = lib.input('cidr', 'string');
+local clusterName = lib.input('clusterName', 'string');
 
 local vpc = (import '../../libs/vpc.libsonnet').withProviderConfig(awsProviderConfig.value).withRegion(region.value);
+
+local tagsPublic = {
+  'kubernetes.io/role/elb': '1',
+  type: 'public',
+  ['kubernetes.io/cluster/'+clusterName.value]: 'shared',
+};
+
+local tagsPrivate = {
+  'kubernetes.io/role/internal-elb': '1',
+  type: 'public',
+  ['kubernetes.io/cluster/'++clusterName.value]: 'shared',
+};
 
 local networks = ip.calcNetworks(cidr.value, [18, 18, 18, 20, 20, 20]);
 local testVpc = vpc.vpc('test', cidr.value);
@@ -33,6 +46,7 @@ local privateRouteTableC = vpc.routeTable('private-c', [vpc.routeNatGateway('0.0
 local publicRouteTable = vpc.routeTable('public', [vpc.routeGateway('0.0.0.0/0', internetGateway)], [publicSubnetA, publicSubnetB, publicSubnetC], testVpc);
 
 {
+  clusterName: clusterName,
   region: region,
   awsProviderConfig: awsProviderConfig,
   cidr: cidr,
