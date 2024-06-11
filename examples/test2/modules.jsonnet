@@ -28,5 +28,5 @@ local k8s = (import '../libs/k8s.libsonnet').withProviderConfig(main.providerCon
     crossform+:: {
       ready: true,
     },
-  };,
+  },
 }
