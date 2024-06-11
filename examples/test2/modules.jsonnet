@@ -26,7 +26,7 @@ local k8s = (import '../libs/k8s.libsonnet').withProviderConfig(main.providerCon
     ],
   }),
   alb: k8s.module('alb', 'examples/modules/alb', inputs={
-    awsProviderConfig: main.providerConfig.metadata.name,
+    awsProviderConfig: main.awsProviderConfig.metadata.name,
     helmProviderConfig: $.eks.status.outputs.helmProviderConfigName,
     oidcUrl: $.eks.status.outputs.oidcUrl,
     oidcArn: $.eks.status.outputs.oidcArn,
