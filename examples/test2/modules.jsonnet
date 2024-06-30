@@ -12,6 +12,7 @@ local region = 'us-east-2';
     region: region,
     awsProviderConfig: main.awsProviderConfig.metadata.name,
     cidr: '10.100.0.0/16',
+    clusterName: clusterName
   }),
   eks: k8s.module('eks', 'examples/modules/eks', inputs={
     region: region,

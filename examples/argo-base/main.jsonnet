@@ -17,7 +17,6 @@ local revision = std.extVar('revision');
       path: 'examples/test2',
       inputs: {
         accountId: std.extVar('accountId'),
-        clusterName: 'test1'
       },
     },
   },
