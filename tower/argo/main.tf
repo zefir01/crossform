@@ -504,11 +504,11 @@ resource "kubernetes_manifest" "argo_base" {
       }
       ignoreDifferences = [
         {
-          group = "datadoghq.com"
-          jsonPointers = [
-            "/spec/tags",
+          group = "argoproj.io"
+          jqPathExpressions = [
+            ".spec.source.directory.jsonnet.extVars | select(.name==\"accountId\") | .value",
           ]
-          kind = "DatadogMonitor"
+          kind = "Application"
         },
       ]
       project = "default"
